@@ -1,25 +1,27 @@
 #ifndef __TYPES__
 #define __TYPES__
 enum DataType{
-    UI8,
-    I8,
-    UI32,
-    I32,
-    UI64,
-    I64,
-    F32,
-    F64,
-    BYTES,
-    STRING
+    CHAR,
+    INT,
+    LONG,
+    FLOAT,
+    DOUBLE,
+    TEXT
 };
+/*
 struct Bytes
 {
-    int size;
+    unsigned size;
+    unsigned max_size;
     unsigned char *bytes;
 };
-struct String
+*/
+struct Text
 {
-    int len;
+    /* length is in bytes */
+    unsigned len;
+    /* max_len is set by column recommendation or storage constraints */
+    unsigned max_len;
     char *str;
 };
 #endif
