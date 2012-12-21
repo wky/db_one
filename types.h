@@ -1,12 +1,17 @@
 #ifndef __TYPES__
 #define __TYPES__
+
+#define MAXLINE 8192
+#define NAMELEN 256
+
 enum DataType{
     CHAR,
     INT,
     LONG,
     FLOAT,
     DOUBLE,
-    TEXT
+    TEXT,
+    UNKNOWN
 };
 /*
 struct Bytes

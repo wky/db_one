@@ -1,11 +1,14 @@
 #ifndef __DBONE__
 #define __DBONE__
 #include "query_result.h"
+#include "types.h"
 class DatabaseOne
 {
+private:
+    QueryResult *run_ast();
 public:
     /* supply config file name */
-    DatabaseOne(char *);
+    DatabaseOne();
     ~DatabaseOne();
     /* initialise */
     bool init();

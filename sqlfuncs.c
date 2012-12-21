@@ -9,3 +9,9 @@ void yyerror(char *s, ...)
 void free_ast(AST * tree){
 
 }
+int int main(int argc, char const *argv[])
+{
+    yyparse();
+    printf("%s\n", yy_message);
+    return 0;
+}

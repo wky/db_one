@@ -1,6 +1,6 @@
 %option noyywrap nodefault yylineno case-insensitive
 %{
-#include "sql.tab.h"
+#include "mysql.tab.h"
 #include "sqlfuncs.h"
 #include <stdarg.h>
 #include <string.h>
@@ -10,11 +10,10 @@ int oldstate;
 %}
 
 %x COMMENT 
-%s BTWMODE /*BETWEEN <> AND <> */
+%s BTWMODE
 
 %%
 
-/* START KEYWORDS */
 ADD         { return ADD; }
 ALL     { return ALL; }
 <BTWMODE>AND    { BEGIN INITIAL; return AND; }
@@ -30,6 +29,7 @@ CHAR(ACTER)?    { return CHAR; }
 CREATE  { return CREATE; }
 DATABASE    { return DATABASE; }
 DATABASES   { return DATABASES; }
+DEFAULT     { return DEFAULT; }
 DELETE  { return DELETE; }
 DESC    { return DESC; }
 DISTINCT    { return DISTINCT; }
@@ -49,6 +49,7 @@ LIKE    { return LIKE; }
 INT8|LONG   { return LONG; }
 MOD     { return MOD; }
 NOT     { return NOT; }
+ON      { return ON; }
 OR      { return OR; }
 ORDER   { return ORDER; }
 PRIMARY { return PRIMARY; }
@@ -65,9 +66,6 @@ VALUES? { return VALUES; }
 WHERE   { return WHERE; }
 XOR     { return XOR; }
 
-/* END KEYWORDS */
-
-/* (DECIMAL) NUMBERS */
 -?[0-9]+    { yylval.intval = atol(yytext); return INTNUM; }
 -?[0-9]+"."[0-9]*   |
 -?"."[0-9]+ |
@@ -75,12 +73,10 @@ XOR     { return XOR; }
 -?[0-9]+"."[0-9]*E[-+]?[0-9]+   |
 -?"."[0-9]+E[-+]?[0-9]+     { yylval.floatval = atof(yytext); return APPROXNUM; }
 
-/* BOOLEANS */
 TRUE    { yylval.intval = 1; return BOOL; } 
 UNKNOWN { yylval.intval = -1; return BOOL; } 
 FALSE   { yylval.intval = 0; return BOOL; }
 
-/* STRINGS */
 '(\\.|''|[^'\n])*' |
 \"(\\.|\"\"|[^"\n])*\"  { yylval.strval = strdup(yytext); return STRING; }
 
@@ -88,32 +84,25 @@ FALSE   { yylval.intval = 0; return BOOL; }
 '(\\.|[^'\n])*$     { yyerror("Unterminated string %s", yytext); } 
 \"(\\.|[^"\n])*$    { yyerror("Unterminated string %s", yytext); }
 
-/* HEX AND BINARY NUMBERS */
 0X[0-9A-F]+     { yylval.intval = strtol(yytext, NULL, 16); return INTNUM; }
 0B[01]+         { yylval.intval = strtol(yytext + 2, NULL, 2); return INTNUM; }
 
 
-/* OPERATORS */
 [-+&~|/%*(),.;!]    { return yytext[0]; }
 "&&"    { return ANDOP; }
 "||"    { return OR; }
 
-"="     { yylval.token = OperatorToken.E; return COMP; }
-">="    { yylval.token = OperatorToken.GE; return COMP; }
-">"     { yylval.token = OperatorToken.G; return COMP; }
-"<="    { yylval.token = OperatorToken.LE; return COMP; }
-"<"     { yylval.token = OperatorToken.L; return COMP; }
-"!="    { yylval.token = OperatorToken.NE; return COMP; }
+"="     { yylval.cmptok = CompareToken.E; return COMP; }
+">="    { yylval.cmptok = CompareToken.GE; return COMP; }
+">"     { yylval.cmptok = CompareToken.G; return COMP; }
+"<="    { yylval.cmptok = CompareToken.LE; return COMP; }
+"<"     { yylval.cmptok = CompareToken.L; return COMP; }
+"!="    { yylval.cmptok = CompareToken.NE; return COMP; }
 
-"<<"    { yylval.token = OperatorToken.SHL; return SHIFT; }
-">>"    { yylval.token = OperatorToken.SHR; return SHIFT; }
-
-/* NAMES */
 [A-Za-z][A-Za-z0-9_]*   { yylval.strval = strdup(yytext); return NAME; }
 `[^`/\\.\n]+`           { yylval.strval = strdup(yytext+1); yylval.strval[yyleng-2] = 0; return NAME; }
 `[^`\n]*$               { yyerror("unterminated quoted name %s", yytext); }
 
-/* COMMENTS */
 #.*         ;
 "--"[ \t].* ;
 "/*"            { oldstate = YY_START; BEGIN COMMENT; }

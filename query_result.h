@@ -4,13 +4,18 @@
 #include "error.h"
 class QueryResult
 {
+private:
+    char msg[MAXLINE];
+    int err_code;
 public:
-    QueryResult();
+    QueryResult(int, char *);
     ~QueryResult();
+    /* returns data or not */
+    //bool returns_data();
     /* negative return value indicates error */
     int result_count();
     /* copy error message to pointer */
-    void error_message(char *);
+    void message(char *);
     /* number of columns returned */
     int column_count();
     /* copy name of column to pointer */
