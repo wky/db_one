@@ -1,225 +1,210 @@
-#ifdef __SQLFUNCS__
+#ifndef __SQLFUNCS__
 #define __SQLFUNCS__
-#include <stdarg.h>
-#include <stdio.h>
-char yy_message[MAXLINE];
 
-/* define token numbers */
-enum CompareToken{
-    E,
-    GE,
-    G,
-    LE,
-    L,
-    NE,
-};
+#define CMP_E   0
+#define CMP_GE  1
+#define CMP_G   2
+#define CMP_LE  3
+#define CMP_L   4
+#define CMP_NE  5
 
-enum OperatorToken{
-    ADD,
-    SUB,
-    NEG,
-    MUL,
-    DIV,
-    MOD,
-    BITAND,
-    BITOR,
-    BITXOR,
-    BITFLIP,
-    LOGAND,
-    LOGOR,
-    LOGXOR,
-    LOGNOT
-};
+#define OP_ADD      0
+#define OP_SUB      1
+#define OP_NEG      2
+#define OP_MUL      3
+#define OP_DIV      4
+#define OP_MOD      5
+#define OP_BITAND   6
+#define OP_BITOR    7
+#define OP_BITXOR   8
+#define OP_BITFLIP  9
+#define OP_LOGAND   10
+#define OP_LOGOR    11
+#define OP_LOGXOR   12
+#define OP_LOGNOT   13
 
-enum AST_TYPE{
-    UNKNOWN = 0,
-    CREATE_DB,
-    USE_DB,
-    DROP_DB,
-    DROP_TABLE,
+#define AST_UNKNOWN         0
+#define AST_CREATE_DB       1
+#define AST_USE_DB          2
+#define AST_DROP_DB         3
+#define AST_DROP_TABLE      4
 
-    CREATE_TABLE,
-    INSERT,
-    UPDATE,
-    DELETE,
-    SELECT,
+#define AST_CREATE_TABLE    5
+#define AST_INSERT          6
+#define AST_UPDATE          7
+#define AST_DELETE          8
+#define AST_SELECT          9
     
-    NAME = 101,
-    NAMEFIELD,
-    STRING,
-    INTNUM,
-    APPROXNUM,
-    BOOLEAN,
-    CMP,
-    OP,
-    IN_RANGE,
-    IN_LIST,
-    NOTIN_LIST,
-    IN_SUB,
-    NOTIN_SUB,
-    EXPR_LIST
-};
+#define EXPR_NAME           10
+#define EXPR_NAMEFIELD      11
+#define EXPR_STRING         12
+#define EXPR_INTNUM         13
+#define EXPR_APPROXNUM      14
+#define EXPR_BOOLEAN        15
+#define EXPR_CMP            16
+#define EXPR_OP             17
+#define EXPR_IN_RANGE       18
+#define EXPR_IN_LIST        19
+#define EXPR_NOTIN_LIST     20
+#define EXPR_IN_SUB         21
+#define EXPR_NOTIN_SUB      22
+
+
 
 struct STMT_AST{
-    AST_TYPE type;
+    int type;
     char *name;
 };
 
 struct TABLE_OP{
-    AST_TYPE type;
+    int type;
     char *name;
     union{
-        COL_DEF_LIST *definition;
-        COL_LISTING *listing;
+        struct COL_DEF_LIST *definition;
+        struct COL_LISTING *listing;
     }columns;
-    INS_SRC *src;
-    EXPR *where;
+    struct INS_SRC *src;
+    struct EXPR *where;
 };
 
 struct COL_DEF_LIST{
     char *name;
-    DataType type;
-    int opt_len;
-    enum{
-        PRI_KEY = 3,
-        UNIQUE_KEY = 1,
-        REFERENCE = 4,
-        DEFAULT = 8
-    }attr_type;
-    union{
-        char *reference;
-        EXPR *def_val;
-    }attr;
-    COL_DEF_LIST *next;
+    int type;
+    /* unique key   1
+       primary key  3
+       reference    4
+       with default 8      
+    */
+    int attr;
+    char *reference;
+    struct EXPR *def_val;
+    struct COL_DEF_LIST *next;
 };
 
 struct COL_LISTING
 {
     char *name;
-    COL_LISTING *next;
+    struct COL_LISTING *next;
 };
 
 struct INS_SRC
 {
-    enum{
-        EXPR_LIST,
-        SUB_QUERY
-    }type;
+    /*  list=0/subquery=1 */
+    int type;
+
     union{
-        SELECT_STMT *sub_query;
-        INS_EXPR_LIST *list;
+        struct INS_EXPR_LIST *list;
+        struct SELECT_STMT *sub_query;
     }contents;
 };
 
 struct INS_EXPR_LIST
 {
-    enum{
-        DEFAULT,
-        EXPR
-    }type;
-    EXPR *expr;
-    INS_EXPR_LIST *next;
+    /* default=0 / expr=1 */
+    int type;
+
+    struct EXPR *expr;
+    struct INS_EXPR_LIST *next;
 };
 
 struct SELECT_STMT{
-    AST_TYPE type;
-    enum{
-        all,
-        distinct
-    }option;
-    SELECT_LIST *select_list;
-    REF_LIST *ref_list;
-    ORDER_LIST *order_list
-    EXPR *where;
+    int type;
 
+    /* all=0/distinct=1 */
+    int option;
+    
+    struct SELECT_LIST *select_list;
+    struct REF_LIST *ref_list;
+    struct ORDER_LIST *order_list;
+    struct EXPR *where;
 };
 struct SELECT_LIST
 {
-    enum{
-        ALL,
-        LIST
-    }type;
-    EXPR *expr;
+    /* all = 0/list=1 */
+    int type;
+    struct EXPR *expr;
     char *alias;
-    SELECT_LIST *next;
+    struct SELECT_LIST *next;
 };
 
 struct REF_LIST
 {
-    enum{
-        NAME,
-        NAMEFIELD,
-        SUB_QUERY
-    }type;
+    /* name=0/name_field=1/subquery=2 */
+    int type;
     union{
         char *name;
         char *name_field;
-        SELECT_STMT *sub_query;
+        struct SELECT_STMT *sub_query;
     }table;
     char *alias;
-    JOIN_PARAM *join_param;
-    REF_LIST *next;
+    struct JOIN_PARAM *join_param;
+    struct REF_LIST *next;
 };
 
 struct JOIN_PARAM{
-    REF_LIST *join_with;
-    EXPR *join_cond;
+    struct REF_LIST *join_with;
+    struct EXPR *join_cond;
 };
 
 struct ORDER_LIST
 {
-    enum{
-        ASC,
-        DESC
-    }type;
-    EXPR *expr;
-    ORDER_LIST *next;
+    /* asc = 0/desc = 1 */
+    int type;
+    struct EXPR *expr;
+    struct ORDER_LIST *next;
 };
 
 struct EXPR{
-    AST_TYPE type;
+    int type;
     union{
         char *name;
         char *name_field;
         char *str;
-        int intval;
+        long intval;
         double floatval;
         bool boolval;
-        CompareToken cmptok;
-        OperatorToken optok;
-        EXPR *list_expr;
+        int cmptok;
+        int optok;
+        struct EXPR *test;
     }self;
     union{
-        EXPR *real_child[2];
-        EXPR *range[2];
-        EXPR *list_next;
-        SELECT_STMT *sub_query;
+        struct EXPR *real_child[2];
+        struct EXPR *range[2];
+        struct EXPR_LIST *list;
+        struct SELECT_STMT *sub_query;
     }child;
 };
+struct EXPR_LIST
+{
+    struct EXPR *expr;
+    struct EXPR_LIST *next;
+};
 
-EXPR *newEXPR_NAME(char *);
-EXPR *newEXPR_NAMEFIELD(char *, char *);
-EXPR *newEXPR_STRING(char *);
-EXPR *newEXPR_INTNUM(long);
-EXPR *newEXPR_APPROXNUM(long);
-EXPR *newEXPR_BOOLEAN(bool);
-EXPR *newEXPR_CMP(CompareToken, EXPR *, EXPR *);
-EXPR *newEXPR_OP(OperatorToken, EXPR *, EXPR *);
-EXPR *newEXPR_RANGE(bool, EXPR *, EXPR *, EXPR *);
-EXPR *newEXPR_SUBQ(bool, EXPR *, SELECT_STMT *);
-EXPR *newEXPR_LIST(bool, EXPR *, EXPR *);
-EXPR *newEXPR_LIST_NODE(EXPR *, EXPR *);
+struct EXPR *newEXPR_NAME(char *);
+struct EXPR *newEXPR_NAMEFIELD(char *, char *);
+struct EXPR *newEXPR_STRING(char *);
+struct EXPR *newEXPR_INTNUM(long);
+struct EXPR *newEXPR_APPROXNUM(double);
+struct EXPR *newEXPR_BOOLEAN(bool);
+struct EXPR *newEXPR_CMP(int, struct EXPR *, struct EXPR *);
+struct EXPR *newEXPR_OP(int, struct EXPR *, struct EXPR *);
+struct EXPR *newEXPR_RANGE(struct EXPR *, struct EXPR *, struct EXPR *);
+struct EXPR *newEXPR_SUBQ(bool, struct EXPR *, struct SELECT_STMT *);
+struct EXPR *newEXPR_LIST(bool, struct EXPR *, struct EXPR_LIST *);
 
-STMT_AST *newSTMT_AST(AST_TYPE, char *);
-TABLE_OP *newTABLE_OP(AST_TYPE, char *, COL_DEF_LIST *, COL_LISTING *, INS_SRC *, EXPR *);
-SELECT_STMT*newSELECT(AST_TYPE, SELECT_LIST *, REF_LIST *, EXPR *, ORDER_LIST *);
+struct STMT_AST *newSTMT_AST(int, char *);
+struct TABLE_OP *newTABLE_OP(int, char *, struct COL_DEF_LIST *, struct COL_LISTING *, struct INS_SRC *, struct EXPR *);
+struct SELECT_STMT*newSELECT(int, struct SELECT_LIST *, struct REF_LIST *, struct EXPR *, struct ORDER_LIST *);
 
-void select_list_append(SELECT_LIST *, SELECT_LIST *);
-void col_list_append(COL_LISTING *, char *);
-void order_list_append(ORDER_LIST *, ORDER_LIST *);
-void ref_list_append(REF_LIST *, REF_LIST *);
-void insert_list_append(INS_EXPR_LIST *, INS_EXPR_LIST *);
+void select_list_append(struct SELECT_LIST *, struct SELECT_LIST *);
+void col_list_append(struct COL_LISTING *, char *);
+void order_list_append(struct ORDER_LIST *, struct ORDER_LIST *);
+void ref_list_append(struct REF_LIST *, struct REF_LIST *);
+void insert_list_append(struct INS_EXPR_LIST *, struct INS_EXPR_LIST *);
+void expr_list_append(struct EXPR_LIST *, struct EXPR *);
 char *make_name_field(char *, char *); /* delete two char*s then allocate new one */
-void free_ast(STMT_AST *);
-void yyerror(char*, ...);
+void free_ast(void *);
+char *new_strdup(char *, int);
+void yyerror(const char*, ...);
+extern int yyparse();
 #endif

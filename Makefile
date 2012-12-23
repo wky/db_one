@@ -1,15 +1,15 @@
 CC = g++
 CFLAGS = -g -O0
 #OBJS = exe/main.o db_one.o database.o query_result.o
-#all: $(OBJS)
+all: db_one
 #	$(CC) $(CFLAGS) -o db $(OBJS)
 fb3-1: fb3-1.l fb3-1.y fb3-1.h
 	bison -d fb3-1.y
 	flex -ofb3-1.lex.c fb3-1.l
 	gcc -o $@ fb3-1.tab.c fb3-1.lex.c fb3-1funcs.c
-mysql: mysql.l mysql.y sqlfuncs.h
-	bison -d mysql.y
-	flex -omysql.lex.c mysql.l
-	g++ -o mysql mysql.tab.c mysql.lex.c sqlfuncs.c
+db_one: database.cpp table.cpp db_one.cpp main.cpp query_result.cpp mysql.l mysql.y sqlfuncs.h clean
+	bison -t -d mysql.y
+	flex -omysql.lex.c  --header-file=mysql.lex.h  mysql.l
+	g++ -DYYDEBUG=1 -g -o db_one database.cpp table.cpp db_one.cpp main.cpp query_result.cpp mysql.tab.c mysql.lex.c sqlfuncs.cpp
 clean:
-	rm $(OBJS) db
+	rm -f  *.o  mysql.tab.c mysql.lex.c mysql.tab.h

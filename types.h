@@ -4,15 +4,14 @@
 #define MAXLINE 8192
 #define NAMELEN 256
 
-enum DataType{
-    CHAR,
-    INT,
-    LONG,
-    FLOAT,
-    DOUBLE,
-    TEXT,
-    UNKNOWN
-};
+#define DT_UNKNOWN  0
+#define DT_CHAR     1
+#define DT_INT      2
+#define DT_LONG     3
+#define DT_FLOAT    4
+#define DT_DOUBLE   5
+#define DT_TEXT     6
+
 /*
 struct Bytes
 {

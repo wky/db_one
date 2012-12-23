@@ -1,6 +1,8 @@
 #include "query_result.h"
+#include <stdlib.h>
+#include <string.h>
 
-QueryResult::QueryResult(int error, char *message){
+QueryResult::QueryResult(int error, const char *message){
     err_code = error;
     strncpy(msg, message, MAXLINE);
 }
@@ -14,7 +16,7 @@ int QueryResult::result_count(){
 }
     /* copy error message to pointer */
 void QueryResult::message(char * buf){
-    strcpy(buf, message);
+    strcpy(buf, this->msg);
 }
     /* number of columns returned */
 int QueryResult::column_count(){
@@ -25,8 +27,8 @@ void QueryResult::column_name(int col, char * name){
     name[0] = '\0';
 }
     /* data type of column */
-DataType QueryResult::column_type(int col){
-    return DataType.UNKNOWN;
+int QueryResult::column_type(int col){
+    return DT_UNKNOWN;
 }
     /* iterate through rows */
 bool QueryResult::next_row(){

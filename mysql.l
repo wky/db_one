@@ -1,7 +1,7 @@
 %option noyywrap nodefault yylineno case-insensitive
 %{
-#include "mysql.tab.h"
 #include "sqlfuncs.h"
+#include "mysql.tab.h"
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
@@ -28,7 +28,6 @@ BY      { return BY; }
 CHAR(ACTER)?    { return CHAR; }
 CREATE  { return CREATE; }
 DATABASE    { return DATABASE; }
-DATABASES   { return DATABASES; }
 DEFAULT     { return DEFAULT; }
 DELETE  { return DELETE; }
 DESC    { return DESC; }
@@ -55,7 +54,6 @@ ORDER   { return ORDER; }
 PRIMARY { return PRIMARY; }
 REFERENCE  { return REFERENCE; }
 SELECT  { return SELECT; }
-SENSITIVE   { return SENSITIVE; }
 SET     { return SET; }
 TABLE   { return TABLE; }
 TEXT    { return TEXT; }
@@ -78,7 +76,7 @@ UNKNOWN { yylval.intval = -1; return BOOL; }
 FALSE   { yylval.intval = 0; return BOOL; }
 
 '(\\.|''|[^'\n])*' |
-\"(\\.|\"\"|[^"\n])*\"  { yylval.strval = strdup(yytext); return STRING; }
+\"(\\.|\"\"|[^"\n])*\"  { yylval.strval = new_strdup(yytext, yyleng); return STRING; }
 
 
 '(\\.|[^'\n])*$     { yyerror("Unterminated string %s", yytext); } 
@@ -92,15 +90,15 @@ FALSE   { yylval.intval = 0; return BOOL; }
 "&&"    { return ANDOP; }
 "||"    { return OR; }
 
-"="     { yylval.cmptok = CompareToken.E; return COMP; }
-">="    { yylval.cmptok = CompareToken.GE; return COMP; }
-">"     { yylval.cmptok = CompareToken.G; return COMP; }
-"<="    { yylval.cmptok = CompareToken.LE; return COMP; }
-"<"     { yylval.cmptok = CompareToken.L; return COMP; }
-"!="    { yylval.cmptok = CompareToken.NE; return COMP; }
+"="     { yylval.cmptok = CMP_E; return COMPARISON; }
+">="    { yylval.cmptok = CMP_GE; return COMPARISON; }
+">"     { yylval.cmptok = CMP_G; return COMPARISON; }
+"<="    { yylval.cmptok = CMP_LE; return COMPARISON; }
+"<"     { yylval.cmptok = CMP_L; return COMPARISON; }
+"!="    { yylval.cmptok = CMP_NE; return COMPARISON; }
 
-[A-Za-z][A-Za-z0-9_]*   { yylval.strval = strdup(yytext); return NAME; }
-`[^`/\\.\n]+`           { yylval.strval = strdup(yytext+1); yylval.strval[yyleng-2] = 0; return NAME; }
+[A-Za-z][A-Za-z0-9_]*   { yylval.strval = new_strdup(yytext, yyleng); return NAME; }
+`[^`/\\.\n]+`           { yylval.strval = new_strdup(yytext+1, yyleng - 1); yylval.strval[yyleng-2] = 0; return NAME; }
 `[^`\n]*$               { yyerror("unterminated quoted name %s", yytext); }
 
 #.*         ;

@@ -8,7 +8,7 @@ private:
     char msg[MAXLINE];
     int err_code;
 public:
-    QueryResult(int, char *);
+    QueryResult(int, const char *);
     ~QueryResult();
     /* returns data or not */
     //bool returns_data();
@@ -21,7 +21,7 @@ public:
     /* copy name of column to pointer */
     void column_name(int, char *);
     /* data type of column */
-    DataType column_type(int);
+    int column_type(int);
     /* iterate through rows */
     bool next_row();
     bool previous_row();

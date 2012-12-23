@@ -11,11 +11,14 @@ int main(int argc, char const *argv[])
     db->init();
     while (1){
         printf(">");
-        fgets(sql_buf, MAXLINE, stdin);
+        if (fgets(sql_buf, MAXLINE, stdin) == NULL){
+            printf("\ngood bye.\n");
+            break;
+        }
         QueryResult * res = db->run_query(sql_buf);
         if (!res){
             printf("fatal error.\n");
-            break;
+            continue;
         }
         res->message(sql_buf);
         printf("%s\n", sql_buf);
