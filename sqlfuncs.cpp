@@ -144,12 +144,13 @@ void ref_list_append(struct REF_LIST *list, struct REF_LIST *next){
         list = list->next;
     list->next = next;
 }
+/*
 void insert_list_append(struct INS_EXPR_LIST *list, struct INS_EXPR_LIST *next){
     while (list->next != NULL)
         list = list->next;
     list->next = next;
 }
-
+*/
 void expr_list_append(struct EXPR_LIST *list, struct EXPR *next){
     while (list->next != NULL)
         list = list->next;
@@ -181,7 +182,7 @@ void free_COL_DEF_LIST(struct COL_DEF_LIST *ptr){
         ptr = next;
     }while (next);
 }
-
+/*
 void free_INS_EXPR_LIST(struct INS_EXPR_LIST *ptr){
     struct INS_EXPR_LIST *next;
     do{
@@ -192,6 +193,7 @@ void free_INS_EXPR_LIST(struct INS_EXPR_LIST *ptr){
         ptr = next;
     } while (next);
 }
+*/
 void free_COL_LISTING(struct COL_LISTING *ptr){
     struct COL_LISTING *next;
     do{
@@ -216,7 +218,8 @@ void free_EXPR_LIST(struct EXPR_LIST *ptr){
     struct EXPR_LIST *next;
     do{
         next = ptr->next;
-        free_ast(ptr->expr);
+        if (ptr->expr)
+            free_ast(ptr->expr);
         delete ptr;
         ptr = next;
     } while (next);   
@@ -278,7 +281,7 @@ void free_ast(void *node){
                 if (table_op->src->type)
                     free_ast(table_op->src->contents.sub_query);
                 else
-                    free_INS_EXPR_LIST(table_op->src->contents.list);
+                    free_EXPR_LIST(table_op->src->contents.list);
             }
             if (table_op->where)
                 free_ast(table_op->where);

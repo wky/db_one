@@ -5,6 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+#define CHECK_CURRENT_DB \
+    do {\
+        if (current_db == NULL){ \
+            sprintf(sql, "In Which Database?"); \
+            res = new QueryResult(ENOSELDB, sql); \
+            break; \
+        }\
+    }while(0)
+
 /* dynamically allocated, must be freed */
 extern STMT_AST * ast;
 
@@ -39,10 +49,11 @@ QueryResult *DatabaseOne::run_query(char * sql){
         return NULL;
     std::map<std::string, Database*>::iterator it;
     int ret_code;
+    struct TABLE_OP *table_op = (struct TABLE_OP *)ast;
     switch (ast->type){
         case AST_CREATE_DB:
             if (db.find(std::string(ast->name)) == db.end()){
-                Database *d = new Database(ast->name);
+                Database *d = new Database(ast->name, this);
                 db.insert(std::pair<std::string, Database*>(std::string(ast->name), d));
                 sprintf(sql, "Database \"%s\" created.", ast->name);
                 res = new QueryResult(NOERR, sql);
@@ -79,27 +90,56 @@ QueryResult *DatabaseOne::run_query(char * sql){
             }
             break;
         case AST_DROP_TABLE:
-            if (current_db == NULL){
-                sprintf(sql, "Which Database?");
-                res = new QueryResult(ENOSELDB, sql);
-                break;
-            }
-            ret_code = current_db->drop_table(ast->name);
-            if (ret_code == NOERR)
-                sprintf(sql, "Table \"%s\" in Database\"%s\" dropped.", ast->name, current_db->name());
-            else
-                sprintf(sql, "Table \"%s\" does not exist in Database\"%s\".", ast->name, current_db->name());
+            CHECK_CURRENT_DB;
+            ret_code = current_db->drop_table(ast->name, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_CREATE_TABLE:
+            CHECK_CURRENT_DB;
+            ret_code = current_db->create_table(table_op->name, table_op->columns.definition, sql);
+            res = new QueryResult(ret_code, sql);
+            break;
         case AST_INSERT:
+            CHECK_CURRENT_DB;
+            if (table_op->src->type == 0)
+                ret_code = current_db->insert_into(table_op->name, table_op->columns.listing, 
+                    table_op->src->contents.list, sql);
+            else if (table_op->src->type == 1)
+                ret_code = current_db->insert_into(table_op->name, table_op->columns.listing, 
+                    table_op->src->contents.sub_query, sql);
+            res = new QueryResult(ret_code, sql);
+            break;
         case AST_UPDATE:
+            CHECK_CURRENT_DB;
+            if (table_op->src->type == 0)
+                ret_code = current_db->update(table_op->name, table_op->columns.listing, 
+                    table_op->src->contents.list, table_op->where, sql);
+            else if (table_op->src->type == 1)
+                ret_code = current_db->update(table_op->name, table_op->columns.listing, 
+                    table_op->src->contents.sub_query, table_op->where, sql);
+            res = new QueryResult(ret_code, sql);
+            break;
         case AST_DELETE:
-            res = this->run_table_op((struct TABLE_OP *)ast);
+            CHECK_CURRENT_DB;
+            ret_code = current_db->delete_from(table_op->name, table_op->where, sql);
+            res = new QueryResult(ret_code, sql);
             break;
         case AST_SELECT:
+            CHECK_CURRENT_DB;
             res = this->run_select((struct SELECT_STMT *)ast);
             break;
+        default:
+            break;
+    }
+    free_ast(ast);
+    return res;
+}
+QueryResult *DatabaseOne::run_select(struct SELECT_STMT *select){
+    return new QueryResult(ENOIMPL, "not implemented.");
+}
+
+void function(EXPR *expr){
+    switch(expr->type){
         case EXPR_NAME:
         case EXPR_NAMEFIELD:
         case EXPR_STRING:
@@ -113,19 +153,11 @@ QueryResult *DatabaseOne::run_query(char * sql){
         case EXPR_NOTIN_LIST:
         case EXPR_IN_SUB:
         case EXPR_NOTIN_SUB:
+            break;
         default:
             break;
     }
-    free_ast(ast);
-    return res;
 }
-QueryResult *DatabaseOne::run_table_op(struct TABLE_OP *table_op){
-    return new QueryResult(ENOIMPL, "not implemented.");
-}
-QueryResult *DatabaseOne::run_select(struct SELECT_STMT *select){
-    return new QueryResult(ENOIMPL, "not implemented.");
-}
-
 bool DatabaseOne::shutdown(){
     return true;
 }

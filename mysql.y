@@ -122,7 +122,9 @@ int yylex();
 %type <join> opt_join
 %type <order> opt_orderby order_list col_order
 %type <strval> opt_alias
+/*
 %type <ins_list> insert_val_list insert_val
+*/
 %type <ins_src> insert_source
 
 %start stmt
@@ -167,8 +169,10 @@ expr: expr BETWEEN expr AND expr %prec BETWEEN  { $$ = newEXPR_RANGE($1, $3, $5)
     | '(' expr ')'  { $$ = $2; }
     ;
 
-val_list: expr              { $$ = new EXPR_LIST; $$->expr = $1; $$->next = NULL; }
-        | val_list ',' expr { $$ = $1; expr_list_append($$, $3); }
+val_list: expr      { $$ = new EXPR_LIST; $$->expr = $1; $$->next = NULL; }
+        | DEFAULT   { $$ = new EXPR_LIST; $$->expr = NULL; $$->next = NULL; }
+        | val_list ',' expr     { $$ = $1; expr_list_append($$, $3); }
+        | val_list ',' DEFAULT  { $$ = $1; expr_list_append($$, NULL); }
         ;
 
 /*
@@ -319,20 +323,20 @@ column_list: NAME   { $$ = new struct COL_LISTING; $$->name = $1; $$->next = NUL
            | column_list ',' NAME { $$ = $1; col_list_append($$, $3); }
            ;
 
-insert_source: VALUES '(' insert_val_list ')'   
+insert_source: VALUES '(' val_list ')'   
                 { $$ = new struct INS_SRC; $$->type = 0; $$->contents.list = $3; }
              | table_subquery
                 { $$ = new struct INS_SRC; $$->type = 1; $$->contents.sub_query = $1; }
              ;
-
+/*
 insert_val_list: insert_val
                | insert_val_list ',' insert_val
                { $$ = $1; insert_list_append($$, $3); }
                ;
-
 insert_val: DEFAULT     { $$ = new struct INS_EXPR_LIST; $$->type = 0; $$->next = NULL; }
           | expr        { $$ = new struct INS_EXPR_LIST; $$->type = 1; $$->expr = $1; $$->next = NULL; }
           ;
+*/
 
 update_stmt: UPDATE NAME SET '(' column_list ')' insert_source opt_where
             { $$ = newTABLE_OP(AST_UPDATE, $2, NULL, $5, $7, $8); }

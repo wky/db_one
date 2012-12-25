@@ -11,6 +11,7 @@ int main(int argc, char const *argv[])
     db->init();
     while (1){
         printf(">");
+        memset(sql_buf, 0, sizeof(sql_buf));
         if (fgets(sql_buf, MAXLINE, stdin) == NULL){
             printf("\ngood bye.\n");
             break;

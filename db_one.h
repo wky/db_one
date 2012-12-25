@@ -5,14 +5,13 @@
 #include "types.h"
 #include <map>
 #include <string>
-
+class Database;
 class DatabaseOne
 {
 private:
     Database *current_db;
     std::map<std::string, Database*> db;
     QueryResult *run_select(struct SELECT_STMT *);
-    QueryResult *run_table_op(struct TABLE_OP *);
 public:
     /* supply config file name */
     DatabaseOne();

@@ -73,10 +73,10 @@ struct COL_DEF_LIST{
     /* unique key   1
        primary key  3
        reference    4
-       with default 8      
+       with default 8  
     */
     int attr;
-    char *reference;
+    char *reference; /* reference on primary key of another table */
     struct EXPR *def_val;
     struct COL_DEF_LIST *next;
 };
@@ -93,19 +93,21 @@ struct INS_SRC
     int type;
 
     union{
-        struct INS_EXPR_LIST *list;
+        struct EXPR_LIST *list;
         struct SELECT_STMT *sub_query;
     }contents;
 };
 
+/*
 struct INS_EXPR_LIST
 {
-    /* default=0 / expr=1 */
+     default=0 / expr=1 
     int type;
 
     struct EXPR *expr;
     struct INS_EXPR_LIST *next;
 };
+*/
 
 struct SELECT_STMT{
     int type;
@@ -200,7 +202,7 @@ void select_list_append(struct SELECT_LIST *, struct SELECT_LIST *);
 void col_list_append(struct COL_LISTING *, char *);
 void order_list_append(struct ORDER_LIST *, struct ORDER_LIST *);
 void ref_list_append(struct REF_LIST *, struct REF_LIST *);
-void insert_list_append(struct INS_EXPR_LIST *, struct INS_EXPR_LIST *);
+/* void insert_list_append(struct INS_EXPR_LIST *, struct INS_EXPR_LIST *); */
 void expr_list_append(struct EXPR_LIST *, struct EXPR *);
 char *make_name_field(char *, char *); /* delete two char*s then allocate new one */
 void free_ast(void *);

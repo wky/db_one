@@ -7,4 +7,5 @@
 #define ENOSELDB (-4)
 #define ENOTBL (-5)
 #define ENOIMPL (-6)
+#define EDUPTBL (-7)
 #endif
