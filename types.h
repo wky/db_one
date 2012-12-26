@@ -32,6 +32,16 @@ static char *GET_TYPE_NAME(int t) {
     }
 }
 
+union DataUnion{
+    bool b;
+    char c;
+    int i;
+    long l;
+    float f;
+    double d;
+    char *s;
+};
+
 /*
 struct Bytes
 {

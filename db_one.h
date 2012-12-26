@@ -5,6 +5,7 @@
 #include "types.h"
 #include <map>
 #include <string>
+void delete_tmp(void *);
 class Database;
 class DatabaseOne
 {
@@ -22,6 +23,7 @@ public:
     QueryResult *run_query(char *);
     void *eval_static_ast(struct EXPR *, int *);
     void *convert(void *, int, int*);
+    void delete_tmp(void *);
     /* clean up*/
     bool shutdown();
 };

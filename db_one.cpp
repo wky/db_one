@@ -158,21 +158,32 @@ QueryResult *DatabaseOne::run_select(struct SELECT_STMT *select){
     return new QueryResult(ENOIMPL, "not implemented.");
 }
 void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
+    if (expr == NULL){
+        *type_ptr = DT_UNKNOWN;
+        return NULL;
+    }
+    tmp_num_val *val;
     switch (expr->type){
         case EXPR_NAME:
         case EXPR_NAMEFIELD:
         case EXPR_STRING:
-            *type_ptr = DT_TEXT;
-            return expr->self.name;
+            *type_ptr = DT_TEXT | NEED_FREE_MASK;
+            return new_strdup(expr->self.name, strlen(expr->self.name));
         case EXPR_INTNUM:
             *type_ptr = DT_LONG;
-            return &(expr->self.intval);
+            val = new tmp_num_val;
+            val->intval = expr->self.intval;
+            return val;
         case EXPR_APPROXNUM:
-            *type_ptr = DT_DOUBLE;
-            return &(expr->self.floatval);
+            *type_ptr = DT_DOUBLE | NEED_FREE_MASK;
+            val = new tmp_num_val;
+            val->floatval = expr->self.floatval;
+            return val;
         case EXPR_BOOLEAN:
-            *type_ptr = DT_BOOL;
-            return &(expr->self.boolval);
+            *type_ptr = DT_BOOL | NEED_FREE_MASK;
+            val = new tmp_num_val;
+            val->boolval = expr->self.boolval;
+            return val;
         case EXPR_OP:
             break;
         default:
@@ -183,6 +194,8 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
     /* no support for string operations */
     void *l_ptr = eval_static_ast(expr->child.real_child[0], &l_type);
     if (l_ptr == NULL || (l_type & DT_TEXT)){
+        if (l_ptr)
+            delete[] (char*)l_ptr;
         *type_ptr = DT_UNKNOWN;
         return NULL;
     }
@@ -190,11 +203,13 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
     if (expr->child.real_child[1]){
         r_ptr = eval_static_ast(expr->child.real_child[1], &r_type);
         if (r_ptr == NULL || (r_type & DT_TEXT)){
+            if (r_ptr)
+                delete[] (char*)r_ptr;
             *type_ptr = DT_UNKNOWN;
             return NULL;
         }
     }
-    tmp_num_val *val = new tmp_num_val;
+    val = new tmp_num_val;
     if ((l_type & DT_DOUBLE) || (r_type & DT_DOUBLE)){
         if (l_type & DT_BOOL){
             *type_ptr = DT_BOOL | NEED_FREE_MASK;
@@ -423,6 +438,9 @@ void *DatabaseOne::convert(void *data, int from_type, int *to_type){
             break;
     }
     return data;
+}
+void delete_tmp(void *ptr){
+    delete (tmp_num_val*)ptr;
 }
 void function(EXPR *expr){
     switch(expr->type){

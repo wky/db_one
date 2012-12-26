@@ -5,7 +5,6 @@
 #include <string.h>
 #include "types.h"
 
-#define YYDEBUG 1
 struct STMT_AST *ast;
 struct EXPR *default_expr;
 /*char *ref_table;*/
