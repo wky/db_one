@@ -8,4 +8,5 @@
 #define ENOTBL (-5)
 #define ENOIMPL (-6)
 #define EDUPTBL (-7)
+#define EINVDEF (-8)
 #endif

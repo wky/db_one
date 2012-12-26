@@ -8,7 +8,7 @@
 #define YYDEBUG 1
 struct STMT_AST *ast;
 struct EXPR *default_expr;
-char *ref_table;
+/*char *ref_table;*/
 int yylex();
 %}
 
@@ -151,7 +151,7 @@ expr: expr '+' expr { $$ = newEXPR_OP(OP_ADD, $1, $3); }
     | '~' expr %prec BITFLIP    { $$ = newEXPR_OP(OP_BITFLIP, $2, NULL); }
     | expr ANDOP expr           { $$ = newEXPR_OP(OP_LOGAND, $1, $3); }
     | expr OR expr  { $$ = newEXPR_OP(OP_LOGOR, $1, $3); }
-    | expr XOR expr { $$ = newEXPR_OP(OP_LOGXOR, $1, $3); }
+    /* | expr XOR expr { $$ = newEXPR_OP(OP_LOGXOR, $1, $3); } */
     | expr '|' expr { $$ = newEXPR_OP(OP_BITOR, $1, $3); }
     | expr '&' expr { $$ = newEXPR_OP(OP_BITAND, $1, $3); }
     | expr '^' expr { $$ = newEXPR_OP(OP_BITXOR, $1, $3); }
@@ -214,8 +214,9 @@ new_col_list: create_def
 create_def: NAME data_type opt_attr
             { $$ = new COL_DEF_LIST; $$->name = $1; $$->type = $2; 
               $$->attr = $3;
-              if ($3 & 4)
+             /* if ($3 & 4)
                 $$->reference = ref_table;
+             */
               if ($3 & 8)
                 $$->def_val = default_expr;
             }
@@ -233,13 +234,13 @@ opt_default_len:  empty     { $$ = NAMELEN; }
                | '(' INTNUM ')' { $$ = $2; }
                ;
 */
-opt_attr: /* empty */                   { $$ = 0; default_expr = NULL; ref_table = NULL; }
+opt_attr: /* empty */                   { $$ = 0; default_expr = NULL; /* ref_table = NULL; */ }
         /* | opt_attr AUTO_INCREMENT */
-        | opt_attr UNIQUE KEY           { $$ = $1 | 1; }
-        | opt_attr PRIMARY KEY          { $$ = $1 | 3; }
+        /* | opt_attr UNIQUE KEY           { $$ = $1 | 1; } */
+        /*| opt_attr PRIMARY KEY          { $$ = $1 | 3; } */
         /* | opt_attr KEY */
-        | opt_attr REFERENCE NAME       { $$ = $1 | 4; ref_table = $3; }
-        | opt_attr DEFAULT expr         { $$ = $1 | 8; default_expr = $3; }
+        /* | opt_attr REFERENCE NAME       { $$ = $1 | 4; ref_table = $3; } */
+        |  DEFAULT expr         { $$ = 8; default_expr = $2; }
         ;
 
 select_stmt: SELECT select_opt select_expr_list FROM ref_list opt_where opt_orderby

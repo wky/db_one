@@ -62,7 +62,6 @@ UPDATE  { return UPDATE; }
 USE     { return USE; }
 VALUES? { return VALUES; }
 WHERE   { return WHERE; }
-XOR     { return XOR; }
 
 -?[0-9]+    { yylval.intval = atol(yytext); return INTNUM; }
 -?[0-9]+"."[0-9]*   |

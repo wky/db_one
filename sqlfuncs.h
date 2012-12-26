@@ -71,12 +71,12 @@ struct COL_DEF_LIST{
     char *name;
     int type;
     /* unique key   1
-       primary key  3
+       primary key  1+2
        reference    4
        with default 8  
     */
     int attr;
-    char *reference; /* reference on primary key of another table */
+    /*char *reference; reference on primary key of another table no implement */
     struct EXPR *def_val;
     struct COL_DEF_LIST *next;
 };

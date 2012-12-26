@@ -20,6 +20,8 @@ public:
     bool init();
     /* perform the query */
     QueryResult *run_query(char *);
+    void *eval_static_ast(struct EXPR *, int *);
+    void *convert(void *, int, int*);
     /* clean up*/
     bool shutdown();
 };

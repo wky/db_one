@@ -2,8 +2,11 @@
 #define __DATABASE__
 #include "table.h"
 #include "db_one.h"
+#include "sqlfuncs.h"
 #include <string>
 #include <map>
+#include <vector>
+
 class DatabaseOne;
 class Table;
 class Database

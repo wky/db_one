@@ -174,8 +174,9 @@ void free_COL_DEF_LIST(struct COL_DEF_LIST *ptr){
     do {
         next = ptr->next;
         delete[] ptr->name;
+        /*
         if (ptr->attr | 4)
-            delete[] ptr->reference;
+            delete[] ptr->reference; */
         if (ptr->attr | 8)
             free_ast(ptr->def_val);
         delete ptr;
