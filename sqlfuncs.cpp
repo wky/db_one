@@ -151,6 +151,11 @@ void insert_list_append(struct INS_EXPR_LIST *list, struct INS_EXPR_LIST *next){
     list->next = next;
 }
 */
+void col_def_list_append(struct COL_DEF_LIST *list, struct COL_DEF_LIST *next){
+    while (list->next != NULL)
+        list = list->next;
+    list->next = next;
+}
 void expr_list_append(struct EXPR_LIST *list, struct EXPR *next){
     while (list->next != NULL)
         list = list->next;
@@ -177,7 +182,7 @@ void free_COL_DEF_LIST(struct COL_DEF_LIST *ptr){
         /*
         if (ptr->attr | 4)
             delete[] ptr->reference; */
-        if (ptr->attr | 8)
+        if (ptr->attr & 8)
             free_ast(ptr->def_val);
         delete ptr;
         ptr = next;
@@ -253,6 +258,7 @@ void free_REF_LIST(struct REF_LIST *ptr){
         ptr = next;
     } while (next);
 }
+
 void free_ast(void *node){
     if (node == NULL)
         return;
@@ -340,7 +346,7 @@ void free_ast(void *node){
 
 char *new_strdup(char *str, int len){
     char *new_str = new char[len+1];
-    strncpy(new_str, str, len);
+    strncpy(new_str, str, len+1);
     return new_str;
 }
 

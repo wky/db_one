@@ -2,6 +2,7 @@
 #define __TABLE__
 #include "database.h"
 #include "db_one.h"
+#include "types.h"
 #include <string>
 #include <vector>
 #include <map>

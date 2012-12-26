@@ -202,6 +202,7 @@ void select_list_append(struct SELECT_LIST *, struct SELECT_LIST *);
 void col_list_append(struct COL_LISTING *, char *);
 void order_list_append(struct ORDER_LIST *, struct ORDER_LIST *);
 void ref_list_append(struct REF_LIST *, struct REF_LIST *);
+void col_def_list_append(struct COL_DEF_LIST *, struct COL_DEF_LIST *);
 /* void insert_list_append(struct INS_EXPR_LIST *, struct INS_EXPR_LIST *); */
 void expr_list_append(struct EXPR_LIST *, struct EXPR *);
 char *make_name_field(char *, char *); /* delete two char*s then allocate new one */

@@ -63,19 +63,19 @@ USE     { return USE; }
 VALUES? { return VALUES; }
 WHERE   { return WHERE; }
 
--?[0-9]+    { yylval.intval = atol(yytext); return INTNUM; }
--?[0-9]+"."[0-9]*   |
--?"."[0-9]+ |
--?[0-9]+E[-+]?[0-9]+    |
--?[0-9]+"."[0-9]*E[-+]?[0-9]+   |
--?"."[0-9]+E[-+]?[0-9]+     { yylval.floatval = atof(yytext); return APPROXNUM; }
+[0-9]+    { yylval.intval = atol(yytext); return INTNUM; }
+[0-9]+"."[0-9]*   |
+"."[0-9]+ |
+[0-9]+E[-+]?[0-9]+    |
+[0-9]+"."[0-9]*E[-+]?[0-9]+   |
+"."[0-9]+E[-+]?[0-9]+     { yylval.floatval = atof(yytext); return APPROXNUM; }
 
 TRUE    { yylval.intval = 1; return BOOL; } 
 UNKNOWN { yylval.intval = -1; return BOOL; } 
 FALSE   { yylval.intval = 0; return BOOL; }
 
 '(\\.|''|[^'\n])*' |
-\"(\\.|\"\"|[^"\n])*\"  { yylval.strval = new_strdup(yytext, yyleng); return STRING; }
+\"(\\.|\"\"|[^"\n])*\"  { yylval.strval = new_strdup(yytext+1, yyleng-1); yylval.strval[yyleng-2] = 0; return STRING; }
 
 
 '(\\.|[^'\n])*$     { yyerror("Unterminated string %s", yytext); } 

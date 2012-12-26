@@ -1,4 +1,4 @@
-%{
+ %{
 #include "sqlfuncs.h"
 #include <stdlib.h>
 #include <stdarg.h> 
@@ -42,15 +42,13 @@ int yylex();
 %token <intval> BOOL
 %token <floatval> APPROXNUM
 
-
-/* precedence levels*/
 %left OR
 %left XOR
 %left ANDOP
-%nonassoc IN LIKE 
+%nonassoc IN LIKE
 %left NOT '!'
 %left BETWEEN
-%left <cmptok> COMPARISON /* = <> < > <= >= <=> */ 
+%left <cmptok> COMPARISON /* = <> < > <= >= <=> */
 %left '|'
 %left '&'
 %left '+' '-'
@@ -137,7 +135,9 @@ expr: NAME          { $$ = newEXPR_NAME($1); }
     | NAME '.' NAME { $$ = newEXPR_NAMEFIELD($1, $3); }
     | STRING        { $$ = newEXPR_STRING($1); }
     | INTNUM        { $$ = newEXPR_INTNUM($1); }
+    /* | '-' INTNUM        { $$ = newEXPR_INTNUM($1); } */
     | APPROXNUM     { $$ = newEXPR_APPROXNUM($1); }
+    /* | '-' APPROXNUM     { $$ = newEXPR_APPROXNUM($1); }*/
     | BOOL          { $$ = newEXPR_BOOLEAN($1); }
     ;
 
@@ -209,7 +209,7 @@ create_table_stmt: CREATE TABLE NAME '(' new_col_list ')'
                  ;
 
 new_col_list: create_def
-            | new_col_list ',' create_def
+            | new_col_list ',' create_def   { $$ = $1; col_def_list_append($$, $3); }
             ;
 create_def: NAME data_type opt_attr
             { $$ = new COL_DEF_LIST; $$->name = $1; $$->type = $2; 
@@ -219,6 +219,7 @@ create_def: NAME data_type opt_attr
              */
               if ($3 & 8)
                 $$->def_val = default_expr;
+              $$->next = NULL;
             }
           ;
 

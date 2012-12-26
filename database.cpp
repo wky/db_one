@@ -41,7 +41,7 @@ int Database::drop_table(const char *tbl_name, char *buf){
 int Database::create_table(const char *name, struct COL_DEF_LIST *def, char *buf){
     std::map<std::string, Table*>::iterator it = tables.find(std::string(name));
     if (it != tables.end()){
-        sprintf(buf, "Table \"%s\" exists in Database \"%s\"\n", name, this->name());
+        sprintf(buf, "Table \"%s\" exists in Database \"%s\"", name, this->name());
         return EDUPTBL;
     }
     struct COL_DEF_LIST *ptr = def;
@@ -62,7 +62,10 @@ int Database::create_table(const char *name, struct COL_DEF_LIST *def, char *buf
         }
         cols.push_back(std::pair<int, std::string>(ptr->type, std::string(ptr->name)));
         n_col++;
+        ptr = ptr->next;
     }
+    if (ptr)
+        return ret_code;
     Table *tbl = new Table(name, this, cols, default_val);
     tables.insert(std::pair<std::string, Table*>(std::string(name), tbl));
     sprintf(buf, "Table \"%s\" created.", name);

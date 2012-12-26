@@ -11,16 +11,6 @@ union tmp_num_val{
     bool boolval;
     char charval;
 };
-
-#define CHECK_CURRENT_DB \
-    do {\
-        if (current_db == NULL){ \
-            sprintf(sql, "In Which Database?"); \
-            res = new QueryResult(ENOSELDB, sql); \
-            break; \
-        }\
-    }while(0)
-
 /* dynamically allocated, must be freed */
 extern STMT_AST * ast;
 
@@ -42,7 +32,7 @@ bool DatabaseOne::init(){
 QueryResult *DatabaseOne::run_query(char * sql){
     int parse_ret;
     QueryResult *res;
-    //yydebug = 1;
+    yydebug = 1;
     YY_BUFFER_STATE bp = yy_scan_string(sql);
     yy_switch_to_buffer(bp);
     parse_ret = yyparse();
@@ -96,17 +86,29 @@ QueryResult *DatabaseOne::run_query(char * sql){
             }
             break;
         case AST_DROP_TABLE:
-            CHECK_CURRENT_DB;
+            if (current_db == NULL){
+                sprintf(sql, "In Which Database?");
+                res = new QueryResult(ENOSELDB, sql);
+                break;
+            }
             ret_code = current_db->drop_table(ast->name, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_CREATE_TABLE:
-            CHECK_CURRENT_DB;
+            if (current_db == NULL){
+                sprintf(sql, "In Which Database?");
+                res = new QueryResult(ENOSELDB, sql);
+                break;
+            }
             ret_code = current_db->create_table(table_op->name, table_op->columns.definition, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_INSERT:
-            CHECK_CURRENT_DB;
+            if (current_db == NULL){
+                sprintf(sql, "In Which Database?");
+                res = new QueryResult(ENOSELDB, sql);
+                break;
+            }
             if (table_op->src->type == 0)
                 ret_code = current_db->insert_into(table_op->name, table_op->columns.listing, 
                     table_op->src->contents.list, sql);
@@ -116,7 +118,11 @@ QueryResult *DatabaseOne::run_query(char * sql){
             res = new QueryResult(ret_code, sql);
             break;
         case AST_UPDATE:
-            CHECK_CURRENT_DB;
+            if (current_db == NULL){
+                sprintf(sql, "In Which Database?");
+                res = new QueryResult(ENOSELDB, sql);
+                break;
+            }
             if (table_op->src->type == 0)
                 ret_code = current_db->update(table_op->name, table_op->columns.listing, 
                     table_op->src->contents.list, table_op->where, sql);
@@ -126,12 +132,20 @@ QueryResult *DatabaseOne::run_query(char * sql){
             res = new QueryResult(ret_code, sql);
             break;
         case AST_DELETE:
-            CHECK_CURRENT_DB;
+            if (current_db == NULL){
+                sprintf(sql, "In Which Database?");
+                res = new QueryResult(ENOSELDB, sql);
+                break;
+            }
             ret_code = current_db->delete_from(table_op->name, table_op->where, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_SELECT:
-            CHECK_CURRENT_DB;
+            if (current_db == NULL){
+                sprintf(sql, "In Which Database?");
+                res = new QueryResult(ENOSELDB, sql);
+                break;
+            }
             res = this->run_select((struct SELECT_STMT *)ast);
             break;
         default:
@@ -168,21 +182,21 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
     int l_type, r_type;
     /* no support for string operations */
     void *l_ptr = eval_static_ast(expr->child.real_child[0], &l_type);
-    if (l_type == DT_TEXT || l_ptr == NULL){
+    if (l_ptr == NULL || (l_type & DT_TEXT)){
         *type_ptr = DT_UNKNOWN;
         return NULL;
     }
     void *r_ptr = NULL;
     if (expr->child.real_child[1]){
-        r_ptr = eval_static_ast(expr->child.real_child[0], &r_type);
-        if (r_type == DT_TEXT || r_ptr == NULL){
+        r_ptr = eval_static_ast(expr->child.real_child[1], &r_type);
+        if (r_ptr == NULL || (r_type & DT_TEXT)){
             *type_ptr = DT_UNKNOWN;
             return NULL;
         }
     }
     tmp_num_val *val = new tmp_num_val;
-    if (l_type == DT_DOUBLE || r_type == DT_DOUBLE){
-        if (l_type == DT_BOOL){
+    if ((l_type & DT_DOUBLE) || (r_type & DT_DOUBLE)){
+        if (l_type & DT_BOOL){
             *type_ptr = DT_BOOL | NEED_FREE_MASK;
             switch(expr->self.optok){
                 case OP_LOGAND:
@@ -193,7 +207,7 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
                     *type_ptr = DT_UNKNOWN;
                     delete val;
             }
-        }else if (r_type == DT_BOOL){
+        }else if (r_type & DT_BOOL){
             *type_ptr = DT_BOOL | NEED_FREE_MASK;
             switch(expr->self.optok){
                 case OP_LOGAND:
@@ -204,7 +218,7 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
                     *type_ptr = DT_UNKNOWN;
                     delete val;
             }
-        }else if (l_type == DT_LONG){
+        }else if (l_type & DT_LONG){
             *type_ptr = DT_DOUBLE | NEED_FREE_MASK;
             switch (expr->self.optok){
                 case OP_ADD:
@@ -219,7 +233,7 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
                     *type_ptr = DT_UNKNOWN;
                     delete val;
             }
-        }else if (r_type == DT_LONG){
+        }else if (r_type & DT_LONG){
             *type_ptr = DT_DOUBLE | NEED_FREE_MASK;
             switch (expr->self.optok){
                 case OP_ADD:
@@ -252,8 +266,8 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
                     delete val;
             }
         }
-    }else if (l_type == DT_LONG || r_type == DT_LONG){
-        if (l_type == DT_BOOL){
+    }else if ((l_type & DT_LONG) || (r_type & DT_LONG)){
+        if (l_type & DT_BOOL){
             *type_ptr = DT_BOOL | NEED_FREE_MASK;
             switch(expr->self.optok){
                 case OP_LOGAND:
@@ -264,7 +278,7 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
                     *type_ptr = DT_UNKNOWN;
                     delete val;
             }
-        }else if (r_type == DT_BOOL){
+        }else if (r_type & DT_BOOL){
             *type_ptr = DT_BOOL | NEED_FREE_MASK;
             switch(expr->self.optok){
                 case OP_LOGAND:
@@ -333,9 +347,9 @@ void *DatabaseOne::eval_static_ast(struct EXPR *expr, int *type_ptr){
                 break;
         }
     }
-    if (l_type | NEED_FREE_MASK)
+    if (l_type & NEED_FREE_MASK)
         delete (tmp_num_val*)l_ptr;
-    if (r_type | NEED_FREE_MASK)
+    if (r_type & NEED_FREE_MASK)
         delete (tmp_num_val*)r_ptr;
     if (*type_ptr == DT_UNKNOWN)
         return NULL;
