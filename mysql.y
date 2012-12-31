@@ -106,7 +106,7 @@ int yylex();
 %token WHERE
 %token XOR
 
-%type <expr_tree> expr opt_join_cond opt_where
+%type <expr_tree> expr opt_where
 %type <list> val_list
 %type <stmt_ast> stmt create_database_stmt use_database_stmt drop_database_stmt drop_table_stmt
 %type <table_op> create_table_stmt insert_stmt update_stmt delete_stmt
@@ -272,9 +272,10 @@ table_ref: table_factor opt_join    { $$ = $1; $$->join_param = $2; }
 table_factor: NAME opt_alias            
                 { $$ = new struct REF_LIST; $$->type = 0; 
                   $$->table.name = $1; $$->alias = $2; $$->next = NULL; }
-            | NAME '.' NAME opt_alias
+            /* | NAME '.' NAME opt_alias
                 { $$ = new struct REF_LIST; $$->type = 1; 
-                  $$->table.name_field = make_name_field($1, $3); $$->alias = $4; $$->next = NULL; }
+                  $$->table.name_field = make_name_field($1, $3); $$->alias = $4; $$->next = NULL; } */
+            /* no support for tables in different DBs */
             | table_subquery AS NAME
                 { $$ = new struct REF_LIST; $$->type = 2;
                   $$->table.sub_query = $1; $$->alias = $3; $$->next = NULL;}
@@ -284,12 +285,14 @@ table_subquery: '(' select_stmt ')'     { $$ = $2; }
               ;
 
 opt_join: /* empty */   { $$ = NULL; }
-        | INNER JOIN table_factor opt_join_cond
-        { $$ = new struct JOIN_PARAM; $$->join_cond = $4; $$->join_with = $3; }
+        | INNER JOIN table_factor ON expr
+        { $$ = new struct JOIN_PARAM; $$->join_cond = $5; $$->join_with = $3; }
         ;
-opt_join_cond: /* empty */  { $$ = NULL; }
+/* join condition should not be empty
+opt_join_cond:  empty   { $$ = NULL; }
              | ON expr      { $$ = $2; }
              ;
+*/
 opt_alias: /* empty */  { $$ = NULL; }
          | AS NAME      { $$ = $2; }
          ;

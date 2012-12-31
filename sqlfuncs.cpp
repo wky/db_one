@@ -344,6 +344,27 @@ void free_ast(void *node){
     }
 }
 
+static char cmp_names[][16] = {"equal", "greater/equal", "greater",
+"less/equal", "less", "not equal", "unknown"};
+
+const char *GET_CMP_NAME(int cmptok){
+    if (cmptok >=0 && cmptok <= 5)
+        return cmp_names[cmptok];
+    else
+        return cmp_names[6];
+}
+
+static char op_names[][10] = {"add", "sub", "neg", "mul", "div", 
+"mod", "bit_and", "bit_or", "bit_xor", "bit_flip", "logic_and", 
+"logic_or", "logic_xor", "logic_not", "unknown"};
+
+const char *GET_OP_NAME(int optok){
+    if (optok >= 0 && optok < 14)
+        return op_names[optok];
+    else
+        return op_names[14];
+}
+
 char *new_strdup(char *str, int len){
     char *new_str = new char[len+1];
     strncpy(new_str, str, len+1);

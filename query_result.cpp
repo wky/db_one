@@ -6,6 +6,10 @@ QueryResult::QueryResult(int error, const char *message){
     err_code = error;
     strncpy(msg, message, MAXLINE);
 }
+QueryResult::QueryResult(int error, const char *message, Table *){
+    err_code = error;
+    strncpy(msg, message, MAXLINE);   
+}
 
 QueryResult::~QueryResult(){
     /* nothing */

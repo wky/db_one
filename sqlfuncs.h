@@ -8,6 +8,8 @@
 #define CMP_L   4
 #define CMP_NE  5
 
+const char *GET_CMP_NAME(int );
+
 #define OP_ADD      0
 #define OP_SUB      1
 #define OP_NEG      2
@@ -22,6 +24,8 @@
 #define OP_LOGOR    11
 #define OP_LOGXOR   12
 #define OP_LOGNOT   13
+
+const char *GET_OP_NAME(int);
 
 #define AST_UNKNOWN         0
 #define AST_CREATE_DB       1
@@ -135,7 +139,7 @@ struct REF_LIST
     int type;
     union{
         char *name;
-        char *name_field;
+        /* char *name_field;*/
         struct SELECT_STMT *sub_query;
     }table;
     char *alias;

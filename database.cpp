@@ -1,11 +1,12 @@
 #include "database.h"
 #include "error.h"
+#include "eval_ast.h"
 Database::Database(const char *name, DatabaseOne *db_one){
     db_name = name;
     dbms = db_one;
 }
 Database::~Database(){
-
+    this->drop();
 }
 const char *Database::name() const{
     return db_name.c_str();
@@ -51,13 +52,13 @@ int Database::create_table(const char *name, struct COL_DEF_LIST *def, char *buf
     while (ptr){
         if (ptr->attr & 8){
             int dt;
-            void *val = dbms->eval_static_ast(ptr->def_val, &dt);
+            void *val = eval_ast(ptr->def_val, &dt);
             if (val == NULL){
                 sprintf(buf, "Invalid default value for column \"%s\"", ptr->name);
                 ret_code = EINVAL;
                 break;
             }
-            val = dbms->convert(val, dt, &(ptr->type));
+            val = dt_convert(val, dt, &(ptr->type));
             default_val.insert(std::pair<int, void*>(n_col, val));
         }
         cols.push_back(std::pair<int, std::string>(ptr->type, std::string(ptr->name)));
@@ -88,7 +89,7 @@ int Database::insert_into(const char *tbl_name, struct COL_LISTING *col_list, st
         int dt = DT_UNKNOWN;
         void *data = NULL;
         if (val_ptr->expr != NULL){
-            data = dbms->eval_static_ast(val_ptr->expr, &dt);
+            data = eval_ast(val_ptr->expr, &dt);
             if (data == NULL){
                 sprintf(buf, "Invalid value for column \"%s\"", col_ptr->name);
                 ret_code = EINVAL;
@@ -122,14 +123,65 @@ int Database::insert_into(const char *tbl_name, struct COL_LISTING *col_list, st
 }
 
 int Database::update(const char *tbl_name, struct COL_LISTING *col_list, struct EXPR_LIST *val_list, struct EXPR *where, char *buf){
-    sprintf(buf, "Not implemented.");
-    return ENOIMPL;
+    std::map<std::string, Table*>::iterator it = tables.find(std::string(tbl_name));
+    if (it == tables.end()){
+        sprintf(buf, "Table \"%s\" does not exist in Database\"%s\".", tbl_name, this->name());
+        return ENOTBL;
+    }
+    struct COL_LISTING *col_ptr = col_list;
+    struct EXPR_LIST *val_ptr = val_list;
+    std::vector<std::string> col_vec;
+    std::vector<std::pair<int, void*> > val_vec; /* type, data */
+    int ret_code = NOERR;
+    while (col_ptr != NULL && val_ptr != NULL){
+        col_vec.push_back(std::string(col_ptr->name));
+        int dt = DT_UNKNOWN;
+        void *data = NULL;
+        if (val_ptr->expr != NULL){
+            data = eval_ast(val_ptr->expr, &dt);
+            if (data == NULL){
+                sprintf(buf, "Invalid value for column \"%s\"", col_ptr->name);
+                ret_code = EINVAL;
+                break;
+            }
+        }
+        val_vec.push_back(std::pair<int, void*>(dt, data));
+        col_ptr = col_ptr->next;
+        val_ptr = val_ptr->next;
+    }
+    if (ret_code != NOERR){
+        for (int i = 0; i < val_vec.size(); i++){
+            if (val_vec[i].first & DT_TEXT)
+                delete[] (char*)(val_vec[i].second);
+            else
+                delete_tmp(val_vec[i].second);
+        }
+        return ret_code;
+    }
+    if (col_ptr || val_ptr){
+        sprintf(buf, "Number of insert elements and number of columns does not match.");
+        return ESYNTAX;
+    }
+    Table *tbl = (*it).second;
+    return tbl->update_where(col_vec, val_vec, where, buf);
 }
 int Database::update(const char *tbl_name, struct COL_LISTING *col_list, struct SELECT_STMT *sub_query, struct EXPR *where, char *buf){
     sprintf(buf, "Not implemented.");
     return ENOIMPL;
 }
 int Database::delete_from(const char *tbl_name, struct EXPR *where, char *buf){
+    std::map<std::string, Table*>::iterator it = tables.find(std::string(tbl_name));
+    if (it == tables.end()){
+        sprintf(buf, "Table \"%s\" does not exist in Database\"%s\".", tbl_name, this->name());
+        return ENOTBL;
+    }
+    int del_cnt = (*it).second->delete_where(where);
+    sprintf(buf, "In Table \"%s\" %d Row(s) deleted.", tbl_name, del_cnt);
+    return NOERR;
+}
+
+int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char *buf){
+    *tbl_ptr_addr = NULL;
     sprintf(buf, "Not implemented.");
     return ENOIMPL;
 }

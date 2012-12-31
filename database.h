@@ -27,6 +27,7 @@ public:
     int update(const char *, struct COL_LISTING *, struct EXPR_LIST *, struct EXPR *, char *);
     int update(const char *, struct COL_LISTING *, struct SELECT_STMT *, struct EXPR *, char *);
     int delete_from(const char *, struct EXPR *, char *);
+    int run_select(struct SELECT_STMT *, Table **, char *);
     ~Database();
 };
 

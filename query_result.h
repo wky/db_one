@@ -2,6 +2,9 @@
 #define __QUERYRESULT__
 #include "types.h"
 #include "error.h"
+#include "table.h"
+class Table;
+
 class QueryResult
 {
 private:
@@ -9,6 +12,7 @@ private:
     int err_code;
 public:
     QueryResult(int, const char *);
+    QueryResult(int, const char *, Table *);
     ~QueryResult();
     /* returns data or not */
     //bool returns_data();
