@@ -132,6 +132,7 @@ void col_list_append(struct COL_LISTING *list, char *name){
         list = list->next;
     list->next = new COL_LISTING;
     list->next->name = name;
+    list->next->next = NULL;
 }
 
 void order_list_append(struct ORDER_LIST *list, struct ORDER_LIST *next){

@@ -222,8 +222,7 @@ create_def: NAME data_type opt_attr
             }
           ;
 
-data_type: CHAR     { $$ = DT_CHAR; }
-         | INT      { $$ = DT_INT; }
+data_type: INT      { $$ = DT_INT; }
          | LONG     { $$ = DT_LONG; }
          | FLOAT    { $$ = DT_FLOAT; }
          | DOUBLE   { $$ = DT_DOUBLE; }

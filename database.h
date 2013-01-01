@@ -17,7 +17,7 @@ private:
     std::map<std::string, Table*> tables;
 public:
     Database(const char *, DatabaseOne *);
-    const char *name() const;
+    std::string& name();
     DatabaseOne *db_one();
     void drop();
     int drop_table(const char *, char *);

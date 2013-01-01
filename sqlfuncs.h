@@ -8,7 +8,7 @@
 #define CMP_L   4
 #define CMP_NE  5
 
-const char *GET_CMP_NAME(int );
+const char *GET_CMP_NAME(int);
 
 #define OP_ADD      0
 #define OP_SUB      1

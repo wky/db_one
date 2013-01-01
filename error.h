@@ -10,4 +10,5 @@
 #define EDUPTBL (-7)
 #define EINVAL (-8)
 #define ENOCOL (-9)
+#define EWHERE (-10)
 #endif

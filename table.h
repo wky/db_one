@@ -21,7 +21,7 @@ private:
     std::map<int, void *> defaults;
     std::vector<DataUnion *> data;
     DataUnion *current_row;
-    int copy_data(DataUnion *, int, int, void *, char *);
+    void copy_data(DataUnion *, int, void *);
     void copy_data(DataUnion *, int);
 public:
     Table(const char *, Database *, std::vector<std::pair<int, std::string> >&, std::map<int, void*>&);

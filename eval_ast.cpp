@@ -60,6 +60,14 @@ void *retrieve(char *tbl_name, char *col_name, int *dt_ptr){
                 col_name, tbl->name().c_str());
         return NULL;
     }
+    int tmp_dt = *dt_ptr;
+    if (tmp_dt & DT_INT){
+        *dt_ptr = DT_LONG;
+        ret = dt_convert(ret, tmp_dt, dt_ptr);
+    }else if (tmp_dt & DT_FLOAT){
+        *dt_ptr = DT_DOUBLE;
+        ret = dt_convert(ret, tmp_dt, dt_ptr);
+    }
     return ret;
 }
 
@@ -157,12 +165,14 @@ void *judge_comparison(int cmptok, void *l_ptr, int l_dt, void *r_ptr, int r_dt,
     if (l_dt & NEED_FREE_MASK){
         if (l_dt & DT_TEXT)
             delete[] (char*)l_ptr;
-        delete (tmp_num_val*)l_ptr;
+        else 
+            delete (tmp_num_val*)l_ptr;
     }
     if (r_dt & NEED_FREE_MASK){
         if (r_dt & DT_TEXT)
             delete[] (char*)r_ptr;
-        delete (tmp_num_val*)r_ptr;
+        else
+            delete (tmp_num_val*)r_ptr;
     }
     if (*dt_ptr == DT_UNKNOWN){
         PRINT_ERR(err_buf, "Unsupported comparison \"%s\" between type %s and %s.", 
@@ -203,7 +213,7 @@ void *calculate_result(int optok, void *l_ptr, int l_dt, void *r_ptr, int r_dt, 
                 l_ptr = dt_convert(l_ptr, l_dt, &tmp_dt);
                 l_dt = tmp_dt;
             }
-            if ((l_dt & DT_TEXT) || (l_dt & DT_LONG)){
+            if ((r_dt & DT_TEXT) || (r_dt & DT_LONG)){
                 r_ptr = dt_convert(r_ptr, r_dt, &tmp_dt);
                 r_dt = tmp_dt;
             }
@@ -303,7 +313,7 @@ void *calculate_result(int optok, void *l_ptr, int l_dt, void *r_ptr, int r_dt, 
                 }
             }
         }
-    }else if ((l_dt & DT_BOOL) && (r_dt & DT_BOOL)){
+    }else if ((l_dt & DT_BOOL) || (r_dt & DT_BOOL)){
         *dt_ptr = DT_BOOL | NEED_FREE_MASK;
         switch(optok){
             case OP_LOGAND:
@@ -331,12 +341,14 @@ void *calculate_result(int optok, void *l_ptr, int l_dt, void *r_ptr, int r_dt, 
     if (l_dt & NEED_FREE_MASK){
         if (l_dt & DT_TEXT)
             delete[] (char*)l_ptr;
-        delete (tmp_num_val*)l_ptr;
+        else
+            delete (tmp_num_val*)l_ptr;
     }
     if (r_dt & NEED_FREE_MASK){
         if (r_dt & DT_TEXT)
             delete[] (char*)r_ptr;
-        delete (tmp_num_val*)r_ptr;
+        else
+            delete (tmp_num_val*)r_ptr;
     }
     if (*dt_ptr == DT_UNKNOWN){
         PRINT_ERR(err_buf, "Unsupported operation \"%s\" between type %s and %s.", 
@@ -394,6 +406,9 @@ void *eval_ast(struct EXPR *expr, int *dt_ptr){
             if (expr->child.real_child[1]){
                 r_ptr = eval_ast(expr->child.real_child[1], &r_dt);
                 ABORT_NULL(r_ptr);
+            }else{
+                r_ptr = NULL;
+                r_dt = DT_UNKNOWN;
             }
             return calculate_result(expr->self.optok, l_ptr, l_dt, r_ptr, r_dt, dt_ptr);
         case EXPR_IN_RANGE:
@@ -477,7 +492,9 @@ void *dt_convert(void *data, int from_type, int *to_type){
         case DT_CHAR: 
         switch (from_type){
             case DT_BOOL:   *(char*)data = (*(bool*)data)? 'T': 'F'; break;
+            case DT_INT:
             case DT_LONG:   *(char*)data = (char)(*(long*)data); break;
+            case DT_FLOAT:
             case DT_DOUBLE: *(char*)data = (char)(*(double*)data); break;
             case DT_TEXT:   val = new tmp_num_val; val->charval = ((char*)data)[0];
                             if (need_free) delete[] (char*)data;
@@ -486,7 +503,10 @@ void *dt_convert(void *data, int from_type, int *to_type){
         case DT_INT:
         case DT_LONG:
         switch (from_type){
+            case DT_CHAR:   *(long*)data = (long)(*(char*)data); break;
             case DT_BOOL:   *(long*)data = (long)(*(bool*)data); break;
+            case DT_INT:    *(long*)data = (long)(*(int*)data); break;
+            case DT_FLOAT:  *(long*)data = (long)(*(float*)data); break;
             case DT_DOUBLE: *(long*)data = (long)(*(double*)data); break;
             case DT_TEXT:   val = new tmp_num_val; *(long*)val = atol((char*)data);  break;
                             if (need_free) delete[] (char*)data;
@@ -495,6 +515,8 @@ void *dt_convert(void *data, int from_type, int *to_type){
         case DT_FLOAT:
         switch (from_type){
             case DT_BOOL:   *(float*)data = (float)(*(bool*)data); break;
+            case DT_CHAR:   *(float*)data = (float)(*(char*)data); break;
+            case DT_INT:    *(float*)data = (float)(*(int*)data); break;
             case DT_LONG:   *(float*)data = (float)(*(long*)data); break;
             case DT_DOUBLE: *(float*)data = (float)(*(double*)data); break;
             case DT_TEXT:   val = new tmp_num_val; *(float*)val = (float)atof((char*)data);
@@ -504,6 +526,8 @@ void *dt_convert(void *data, int from_type, int *to_type){
         case DT_DOUBLE:
         switch (from_type){
             case DT_BOOL:   *(double*)data = (double)(*(bool*)data); break;
+            case DT_CHAR:   *(double*)data = (double)(*(char*)data); break;
+            case DT_INT:    *(double*)data = (double)(*(int*)data); break;
             case DT_LONG:   *(double*)data = (double)(*(long*)data); break;
             case DT_DOUBLE: *(double*)data = (double)(*(double*)data); break;
             case DT_TEXT:   val = new tmp_num_val; *(double*)val = atof((char*)data);
@@ -513,19 +537,29 @@ void *dt_convert(void *data, int from_type, int *to_type){
         case DT_TEXT:
         switch (from_type){
             case DT_BOOL:   ptr = data; data = new char[6]; strcpy((char*)data, (*(bool*)ptr)?"TRUE":"FALSE");
-                            if (need_free) delete (tmp_num_val*)data;
+                            if (need_free) delete (tmp_num_val*)ptr;
+                            *to_type |= NEED_FREE_MASK; break;
+            case DT_CHAR:   ((char*)data)[1] = '\0'; *to_type |= need_free; break;
+            case DT_INT:    ptr = data; data = new char[SHORTLEN]; sprintf((char*)data, "%d", *(int*)ptr);
+                            if (need_free) delete (tmp_num_val*)ptr;
                             *to_type |= NEED_FREE_MASK; break;
             case DT_LONG:   ptr = data; data = new char[SHORTLEN]; sprintf((char*)data, "%ld", *(long*)ptr);
-                            if (need_free) delete (tmp_num_val*)data;
+                            if (need_free) delete (tmp_num_val*)ptr;
+                            *to_type |= NEED_FREE_MASK; break;
+            case DT_FLOAT:  ptr = data; data = new char[SHORTLEN]; sprintf((char*)data, "%f", *(float*)ptr);
+                            if (need_free) delete (tmp_num_val*)ptr;
                             *to_type |= NEED_FREE_MASK; break;
             case DT_DOUBLE: ptr = data; data = new char[SHORTLEN]; sprintf((char*)data, "%lf", *(double*)ptr);
-                            if (need_free) delete (tmp_num_val*)data;
+                            if (need_free) delete (tmp_num_val*)ptr;
                             *to_type |= NEED_FREE_MASK; break;
             case DT_TEXT:   *to_type |= need_free; break;
         }break;
         case DT_BOOL:
         switch (from_type){
-            case DT_LONG:   *(bool*)data = ((*(long*)data) != 0ll); break;
+            case DT_CHAR:   *(bool*)data = ((*(char*)data) != 0); break;
+            case DT_INT:    *(bool*)data = ((*(int*)data) != 0); break;
+            case DT_LONG:   *(bool*)data = ((*(long*)data) != 0l); break;
+            case DT_FLOAT:  *(bool*)data = ((*(float*)data) != 0.0); break;
             case DT_DOUBLE: *(bool*)data = ((*(double*)data) != 0.0); break;
             case DT_TEXT:   val = new tmp_num_val; val->boolval = (((char*)data)[0] != '\0');
                             if (need_free) delete[] (char*)data;

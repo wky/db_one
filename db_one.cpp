@@ -25,7 +25,7 @@ bool DatabaseOne::init(){
 QueryResult *DatabaseOne::run_query(char * sql){
     int parse_ret;
     QueryResult *res;
-    yydebug = 1;
+    /* yydebug = 1;*/
     YY_BUFFER_STATE bp = yy_scan_string(sql);
     yy_switch_to_buffer(bp);
     parse_ret = yyparse();
