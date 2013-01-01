@@ -42,12 +42,14 @@ struct EXPR *newEXPR_APPROXNUM(double val){
     expr->self.floatval = val;
     return expr;
 }
+
 struct EXPR *newEXPR_BOOLEAN(bool val){
     struct EXPR *expr = new struct EXPR;
     expr->type = EXPR_BOOLEAN;
     expr->self.boolval = val;
     return expr;
 }
+
 struct EXPR *newEXPR_CMP(int cmp, struct EXPR *l, struct EXPR *r)
 {
     struct EXPR *expr = new struct EXPR;
@@ -57,6 +59,7 @@ struct EXPR *newEXPR_CMP(int cmp, struct EXPR *l, struct EXPR *r)
     expr->child.real_child[1] = r;
     return expr;
 }
+
 struct EXPR *newEXPR_OP(int op, struct EXPR *l, struct EXPR *r){
     struct EXPR *expr = new struct EXPR;
     expr->type = EXPR_OP;
@@ -65,6 +68,7 @@ struct EXPR *newEXPR_OP(int op, struct EXPR *l, struct EXPR *r){
     expr->child.real_child[1] = r;
     return expr;
 }
+
 struct EXPR *newEXPR_RANGE(struct EXPR *test, struct EXPR *from, struct EXPR *to){
     struct EXPR *expr = new struct EXPR;
     expr->type = EXPR_IN_RANGE;
@@ -73,6 +77,7 @@ struct EXPR *newEXPR_RANGE(struct EXPR *test, struct EXPR *from, struct EXPR *to
     expr->child.range[1] = to;
     return expr;
 }
+
 struct EXPR *newEXPR_SUBQ(bool in, struct EXPR *test, struct SELECT_STMT *sub_query){
     struct EXPR *expr = new struct EXPR;
     expr->type = in?EXPR_IN_SUB:EXPR_NOTIN_SUB;
@@ -80,6 +85,7 @@ struct EXPR *newEXPR_SUBQ(bool in, struct EXPR *test, struct SELECT_STMT *sub_qu
     expr->child.sub_query = sub_query;
     return expr;
 }
+
 struct EXPR *newEXPR_LIST(bool in, struct EXPR *test, struct EXPR_LIST *list){
     struct EXPR *expr = new struct EXPR;
     expr->type = in?EXPR_IN_LIST:EXPR_NOTIN_LIST;
@@ -109,6 +115,7 @@ struct TABLE_OP *newTABLE_OP(int type, char *name, struct COL_DEF_LIST *def,
     ast->where = where;
     return ast;
 }
+
 struct SELECT_STMT*newSELECT(int type, struct SELECT_LIST *list, 
     struct REF_LIST *ref, struct EXPR *where, struct ORDER_LIST *order)
 {
@@ -152,11 +159,13 @@ void insert_list_append(struct INS_EXPR_LIST *list, struct INS_EXPR_LIST *next){
     list->next = next;
 }
 */
+
 void col_def_list_append(struct COL_DEF_LIST *list, struct COL_DEF_LIST *next){
     while (list->next != NULL)
         list = list->next;
     list->next = next;
 }
+
 void expr_list_append(struct EXPR_LIST *list, struct EXPR *next){
     while (list->next != NULL)
         list = list->next;
@@ -201,6 +210,7 @@ void free_INS_EXPR_LIST(struct INS_EXPR_LIST *ptr){
     } while (next);
 }
 */
+
 void free_COL_LISTING(struct COL_LISTING *ptr){
     struct COL_LISTING *next;
     do{
@@ -210,6 +220,7 @@ void free_COL_LISTING(struct COL_LISTING *ptr){
         ptr = next;
     } while (next);   
 }
+
 void free_SELECT_LIST(struct SELECT_LIST *ptr){
     struct SELECT_LIST *next;
     do{
@@ -221,6 +232,7 @@ void free_SELECT_LIST(struct SELECT_LIST *ptr){
         ptr = next;
     }while (next);
 }
+
 void free_EXPR_LIST(struct EXPR_LIST *ptr){
     struct EXPR_LIST *next;
     do{
@@ -231,6 +243,7 @@ void free_EXPR_LIST(struct EXPR_LIST *ptr){
         ptr = next;
     } while (next);   
 }
+
 void free_ORDER_LIST(struct ORDER_LIST *ptr){
     struct ORDER_LIST *next;
     do{
@@ -240,6 +253,7 @@ void free_ORDER_LIST(struct ORDER_LIST *ptr){
         ptr = next;
     } while (next);   
 }
+
 void free_REF_LIST(struct REF_LIST *ptr){
     struct REF_LIST *next;
     do{

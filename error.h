@@ -1,5 +1,6 @@
 #ifndef __ERROR__
 #define __ERROR__
+
 #define NOERR 0
 #define ESYNTAX (-1)
 #define EDUPDB  (-2)
@@ -11,4 +12,5 @@
 #define EINVAL (-8)
 #define ENOCOL (-9)
 #define EWHERE (-10)
+
 #endif

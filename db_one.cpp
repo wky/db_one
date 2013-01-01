@@ -4,18 +4,18 @@
 #include "mysql.lex.h"
 #include <stdio.h>
 #include <stdlib.h>
+
 /* dynamically allocated, must be freed */
 extern STMT_AST * ast;
-
 extern char my_parse_msg[MAXLINE];
 extern int yydebug;
-
+extern Database *current_db;
 DatabaseOne::DatabaseOne(){
-    current_db = NULL;
+    this->current_db = NULL;
 }
 
 DatabaseOne::~DatabaseOne(){
-
+    this->shutdown();
 }
 
 bool DatabaseOne::init(){
@@ -47,6 +47,7 @@ QueryResult *DatabaseOne::run_query(char * sql){
                 db.insert(std::pair<std::string, Database*>(std::string(ast->name), d));
                 sprintf(sql, "Database \"%s\" created.", ast->name);
                 res = new QueryResult(NOERR, sql);
+                this->current_db = d;
                 current_db = d;
             }else{
                 sprintf(sql, "Database \"%s\" exists.", ast->name);
@@ -59,6 +60,7 @@ QueryResult *DatabaseOne::run_query(char * sql){
                 sprintf(sql, "Database \"%s\" does not exist.", ast->name);
                 res = new QueryResult(ENODB, sql);
             }else{
+                this->current_db = (*it).second;
                 current_db = (*it).second;
                 sprintf(sql, "Switched to Database \"%s\".", ast->name);
                 res = new QueryResult(NOERR, sql);
@@ -74,73 +76,74 @@ QueryResult *DatabaseOne::run_query(char * sql){
                 current_db->drop();
                 delete current_db;
                 current_db = NULL;
+                this->current_db = NULL;
                 db.erase(it);
                 sprintf(sql, "Database \"%s\" dropped.", ast->name);
                 res = new QueryResult(NOERR, sql);
             }
             break;
         case AST_DROP_TABLE:
-            if (current_db == NULL){
+            if (this->current_db == NULL){
                 sprintf(sql, "In Which Database?");
                 res = new QueryResult(ENOSELDB, sql);
                 break;
             }
-            ret_code = current_db->drop_table(ast->name, sql);
+            ret_code = this->current_db->drop_table(ast->name, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_CREATE_TABLE:
-            if (current_db == NULL){
+            if (this->current_db == NULL){
                 sprintf(sql, "In Which Database?");
                 res = new QueryResult(ENOSELDB, sql);
                 break;
             }
-            ret_code = current_db->create_table(table_op->name, table_op->columns.definition, sql);
+            ret_code = this->current_db->create_table(table_op->name, table_op->columns.definition, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_INSERT:
-            if (current_db == NULL){
+            if (this->current_db == NULL){
                 sprintf(sql, "In Which Database?");
                 res = new QueryResult(ENOSELDB, sql);
                 break;
             }
             if (table_op->src->type == 0)
-                ret_code = current_db->insert_into(table_op->name, table_op->columns.listing, 
+                ret_code = this->current_db->insert_into(table_op->name, table_op->columns.listing, 
                     table_op->src->contents.list, sql);
             else if (table_op->src->type == 1)
-                ret_code = current_db->insert_into(table_op->name, table_op->columns.listing, 
+                ret_code = this->current_db->insert_into(table_op->name, table_op->columns.listing, 
                     table_op->src->contents.sub_query, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_UPDATE:
-            if (current_db == NULL){
+            if (this->current_db == NULL){
                 sprintf(sql, "In Which Database?");
                 res = new QueryResult(ENOSELDB, sql);
                 break;
             }
             if (table_op->src->type == 0)
-                ret_code = current_db->update(table_op->name, table_op->columns.listing, 
+                ret_code = this->current_db->update(table_op->name, table_op->columns.listing, 
                     table_op->src->contents.list, table_op->where, sql);
             else if (table_op->src->type == 1)
-                ret_code = current_db->update(table_op->name, table_op->columns.listing, 
+                ret_code = this->current_db->update(table_op->name, table_op->columns.listing, 
                     table_op->src->contents.sub_query, table_op->where, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_DELETE:
-            if (current_db == NULL){
+            if (this->current_db == NULL){
                 sprintf(sql, "In Which Database?");
                 res = new QueryResult(ENOSELDB, sql);
                 break;
             }
-            ret_code = current_db->delete_from(table_op->name, table_op->where, sql);
+            ret_code = this->current_db->delete_from(table_op->name, table_op->where, sql);
             res = new QueryResult(ret_code, sql);
             break;
         case AST_SELECT:
-            if (current_db == NULL){
+            if (this->current_db == NULL){
                 sprintf(sql, "In Which Database?");
                 res = new QueryResult(ENOSELDB, sql);
                 break;
             }
-            ret_code = current_db->run_select((struct SELECT_STMT *)ast, &select_res, sql);
+            ret_code = this->current_db->run_select((struct SELECT_STMT *)ast, &select_res, sql);
             res = new QueryResult(ret_code, sql, select_res);
             break;
         default:
@@ -151,5 +154,11 @@ QueryResult *DatabaseOne::run_query(char * sql){
 }
 
 bool DatabaseOne::shutdown(){
+    std::map<std::string, Database*>::iterator it = db.begin();
+    while (it != db.end()){
+        delete (*it).second;
+        it++;
+    }
+    db.clear();
     return true;
 }

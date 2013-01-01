@@ -53,14 +53,14 @@ const char *GET_OP_NAME(int);
 #define EXPR_IN_SUB         21
 #define EXPR_NOTIN_SUB      22
 
-
-
-struct STMT_AST{
+struct STMT_AST
+{
     int type;
     char *name;
 };
 
-struct TABLE_OP{
+struct TABLE_OP
+{
     int type;
     char *name;
     union{
@@ -71,7 +71,8 @@ struct TABLE_OP{
     struct EXPR *where;
 };
 
-struct COL_DEF_LIST{
+struct COL_DEF_LIST
+{
     char *name;
     int type;
     /* unique key   1
@@ -113,17 +114,17 @@ struct INS_EXPR_LIST
 };
 */
 
-struct SELECT_STMT{
+struct SELECT_STMT
+{
     int type;
-
     /* all=0/distinct=1 */
     int option;
-    
     struct SELECT_LIST *select_list;
     struct REF_LIST *ref_list;
     struct ORDER_LIST *order_list;
     struct EXPR *where;
 };
+
 struct SELECT_LIST
 {
     /* all = 0/list=1 */
@@ -147,7 +148,8 @@ struct REF_LIST
     struct REF_LIST *next;
 };
 
-struct JOIN_PARAM{
+struct JOIN_PARAM
+{
     struct REF_LIST *join_with;
     struct EXPR *join_cond;
 };
@@ -160,7 +162,8 @@ struct ORDER_LIST
     struct ORDER_LIST *next;
 };
 
-struct EXPR{
+struct EXPR
+{
     int type;
     union{
         char *name;
@@ -180,6 +183,7 @@ struct EXPR{
         struct SELECT_STMT *sub_query;
     }child;
 };
+
 struct EXPR_LIST
 {
     struct EXPR *expr;
@@ -207,6 +211,7 @@ void col_list_append(struct COL_LISTING *, char *);
 void order_list_append(struct ORDER_LIST *, struct ORDER_LIST *);
 void ref_list_append(struct REF_LIST *, struct REF_LIST *);
 void col_def_list_append(struct COL_DEF_LIST *, struct COL_DEF_LIST *);
+
 /* void insert_list_append(struct INS_EXPR_LIST *, struct INS_EXPR_LIST *); */
 void expr_list_append(struct EXPR_LIST *, struct EXPR *);
 char *make_name_field(char *, char *); /* delete two char*s then allocate new one */
@@ -214,4 +219,6 @@ void free_ast(void *);
 char *new_strdup(char *, int);
 void yyerror(const char*, ...);
 extern int yyparse();
+
 #endif
+

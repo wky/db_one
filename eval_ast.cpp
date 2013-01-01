@@ -442,10 +442,7 @@ void *eval_ast(struct EXPR *expr, int *dt_ptr){
             while (list_ptr != NULL /*&& dyn_val->boolval == expect_bool*/){
                 r_ptr = eval_ast(list_ptr->expr, &r_dt);
                 val = (tmp_num_val *)judge_comparison(CMP_E, l_ptr, l_dt, r_ptr, r_dt, dt_ptr);
-                if (val == NULL){
-                    *dt_ptr = DT_UNKNOWN;
-                    return NULL;
-                }
+                ABORT_NULL(val);
                 if (expect_bool){
                     if (val->boolval)
                         return val;
@@ -462,27 +459,40 @@ void *eval_ast(struct EXPR *expr, int *dt_ptr){
             *dt_ptr = DT_BOOL | NEED_FREE_MASK;
             return val;
         case EXPR_IN_SUB:
+            expect_bool = true;
         case EXPR_NOTIN_SUB:
-            val = (tmp_num_val *)eval_ast(expr->self.test, dt_ptr);
-            ABORT_NULL(val);
+            l_ptr = eval_ast(expr->self.test, &l_dt);
+            ABORT_NULL(l_ptr);
             ret_code = current_db->run_select(expr->child.sub_query, &subq, err_buf);
             if (ret_code != NOERR){
                 *dt_ptr = DT_UNKNOWN;
                 return NULL;
             }
-            /*
-                iterate through every row in subq
-            */
-            PRINT_ERR(err_buf, "Not Implemented.");
-            *dt_ptr = DT_UNKNOWN;
-            return NULL;
+            subq->reset();
+            while (subq->next()){
+                val = (tmp_num_val *)judge_comparison(CMP_E, l_ptr, l_dt, 
+                    subq->retrieve_data(0), subq->col_dt(0), dt_ptr);
+                ABORT_NULL(val);
+                if (expect_bool){
+                    if (val->boolval)
+                        return val;
+                }else{
+                    if (val->boolval){
+                        val->boolval = false;
+                        return val;
+                    }
+                }
+            }
+            val = new tmp_num_val;
+            val->boolval = !expect_bool;
+            *dt_ptr = DT_BOOL | NEED_FREE_MASK;
+            return val;
         default:
             *dt_ptr = DT_UNKNOWN;
             return NULL;
-    }
-
-    
+    }    
 }
+
 void *dt_convert(void *data, int from_type, int *to_type){
     int need_free = from_type & NEED_FREE_MASK;
     from_type &= ~NEED_FREE_MASK;
@@ -570,6 +580,8 @@ void *dt_convert(void *data, int from_type, int *to_type){
     }
     return data;
 }
+
 void delete_tmp(void *ptr){
     delete (tmp_num_val*)ptr;
 }
+

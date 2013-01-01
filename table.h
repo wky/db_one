@@ -1,5 +1,6 @@
 #ifndef __TABLE__
 #define __TABLE__
+
 #include "database.h"
 #include "db_one.h"
 #include "types.h"
@@ -21,7 +22,7 @@ private:
     std::map<int, void *> defaults;
     std::vector<DataUnion *> data;
     DataUnion *current_row;
-    void copy_data(DataUnion *, int, void *);
+    int row_ptr;
     void copy_data(DataUnion *, int);
 public:
     Table(const char *, Database *, std::vector<std::pair<int, std::string> >&, std::map<int, void*>&);
@@ -31,9 +32,21 @@ public:
     void drop();
     bool column_exist(std::string&);
     bool column_exist(char *);
+    int rows_cnt();
+    int cols_cnt();
+    std::string& col_name(int);
+    int col_dt(int);
     std::string& name();
     void *retrieve_data(std::string&, int *);
     void *retrieve_data(char *, int *);
+    void *retrieve_data(int);
+    DataUnion *access_row(int);
+    std::vector<DataUnion *>& access_raw_data();
+    void copy_data(DataUnion *, int, void *);
+    void set_current_row(int);
+    void reset();
+    bool next();
+    bool prev();
     ~Table();
 };
 #endif

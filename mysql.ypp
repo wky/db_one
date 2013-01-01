@@ -248,7 +248,7 @@ select_stmt: SELECT select_opt select_expr_list FROM ref_list opt_where opt_orde
 
 select_opt: /* empty */ { $$ = 0; }
           | ALL         { $$ = 0; }
-          | DISTINCT    { $$ = 1; }
+          /* | DISTINCT    { $$ = 1; }*/
           ;
 select_expr_list: '*'   
                 { $$ = new SELECT_LIST; $$->type = 0; $$->next = NULL; $$->alias = NULL; $$->expr = NULL;}
@@ -257,8 +257,8 @@ select_expr_list: '*'
                 { $$ = $1; select_list_append($$, $3); }
                 ;
 
-select_expr: expr opt_alias  
-            { $$ = new SELECT_LIST; $$->type = 1; $$->expr = $1; $$->next = NULL; $$->alias = $2; }   
+select_expr: expr AS NAME  
+            { $$ = new SELECT_LIST; $$->type = 1; $$->expr = $1; $$->next = NULL; $$->alias = $3; }   
            ;
 
 ref_list: table_ref
@@ -283,10 +283,11 @@ table_factor: NAME opt_alias
 table_subquery: '(' select_stmt ')'     { $$ = $2; }
               ;
 
-opt_join: /* empty */   { $$ = NULL; }
-        | INNER JOIN table_factor ON expr
-        { $$ = new struct JOIN_PARAM; $$->join_cond = $5; $$->join_with = $3; }
+opt_join:    { $$ = NULL; }
+        /* | INNER JOIN table_factor ON expr
+        { $$ = new struct JOIN_PARAM; $$->join_cond = $5; $$->join_with = $3; }*/
         ;
+
 /* join condition should not be empty
 opt_join_cond:  empty   { $$ = NULL; }
              | ON expr      { $$ = $2; }

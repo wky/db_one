@@ -30,6 +30,7 @@ Table::Table(const char *name, Database *db,
         }
         it++;
     }
+    this->reset();
         /*
         printf("Column #%d (%s): data type %s", c, cols[c].second.c_str(), GET_TYPE_NAME(cols[c].first & ~NEED_FREE_MASK));
         it = defs.find(c);
@@ -51,16 +52,22 @@ Table::Table(const char *name, Database *db,
             it++;
         }*/
 }
+
 std::string& Table::name(){
     return tbl_name;
 }
+
 bool Table::column_exist(std::string& col){
     return col_map.find(col) != col_map.end();
 }
+
 bool Table::column_exist(char *col){
     return col_map.find(std::string(col)) != col_map.end();
 }
+
 void *Table::retrieve_data(std::string& col, int *dt_ptr){
+    if (current_row == NULL)
+        return NULL;
     std::map<std::string, int>::iterator it = col_map.find(col);
     if (it == col_map.end()){
         *dt_ptr = DT_UNKNOWN;
@@ -71,7 +78,10 @@ void *Table::retrieve_data(std::string& col, int *dt_ptr){
         return current_row[(*it).second].s;
     return (void *)(current_row + (*it).second);
 }
+
 void *Table::retrieve_data(char *col, int *dt_ptr){
+    if (current_row == NULL)
+        return NULL;
     std::map<std::string, int>::iterator it = col_map.find(std::string(col));
     if (it == col_map.end()){
         *dt_ptr = DT_UNKNOWN;
@@ -82,6 +92,27 @@ void *Table::retrieve_data(char *col, int *dt_ptr){
         return current_row[(*it).second].s;
     return (void *)(current_row + (*it).second);
 }
+
+void *Table::retrieve_data(int col){
+    if (current_row == NULL || col < 0 || col >= col_list.size())
+        return NULL;
+    if (col_list[col].first & DT_TEXT)
+        return current_row[col].s;
+    else
+        return (void *)(current_row + col);
+}
+
+DataUnion *Table::access_row(int id){
+    if (id < 0 || id >= data.size())
+        return NULL;
+    else
+        return data[id];
+}
+
+std::vector<DataUnion *>& Table::access_raw_data(){
+    return this->data;
+}
+
 int Table::insert(std::vector<std::string>& col, 
     std::vector<std::pair<int, void*> >& val, char *buf)
 {
@@ -113,6 +144,7 @@ int Table::insert(std::vector<std::string>& col,
     data.push_back(new_dat);
     return NOERR;
 }
+
 int Table::update_where(std::vector<std::string>& col, 
     std::vector<std::pair<int, void*> >& val, struct EXPR *where, char *buf){
     treat_as_static = false;
@@ -162,6 +194,7 @@ int Table::update_where(std::vector<std::string>& col,
     delete tbl_ref_map;
     return NOERR;
 }
+
 void Table::copy_data(DataUnion *ptr, int col, void *dat){
     switch (col_list[col].first & ~NEED_FREE_MASK){
         case DT_CHAR:   ptr->c = *(char*)dat; break;
@@ -174,6 +207,7 @@ void Table::copy_data(DataUnion *ptr, int col, void *dat){
         default:        break;
     }
 }
+
 void Table::copy_data(DataUnion *ptr, int col){
     std::map<int, void*>::iterator it = defaults.find(col);
     if (it == defaults.end()){
@@ -182,6 +216,14 @@ void Table::copy_data(DataUnion *ptr, int col){
     }
     this->copy_data(ptr, col, (*it).second);
 }
+
+void Table::set_current_row(int id){
+    if (id < 0 || id > data.size())
+        current_row = NULL;
+    else
+        current_row = data[id];
+}
+
 int Table::delete_where(struct EXPR *where){
     int n_left = data.size(), i = 0;
     treat_as_static = false;
@@ -208,9 +250,53 @@ int Table::delete_where(struct EXPR *where){
     delete tbl_ref_map;
     return del_cnt;
 }
+
+int Table::rows_cnt(){
+    return data.size();
+}
+
+int Table::cols_cnt(){
+    return col_list.size();
+}
+
+std::string& Table::col_name(int col){
+    return col_list[col].second;
+}
+
+int Table::col_dt(int col){
+    return col_list[col].first & ~NEED_FREE_MASK;
+}
+
+void Table::reset(){
+    current_row = NULL;
+    row_ptr = -1;
+}
+
+bool Table::next(){
+    if (++row_ptr < data.size()){
+        current_row = data[row_ptr];
+        return true;
+    }else{
+        row_ptr = data.size();
+        current_row = NULL;
+        return false;
+    }
+}
+
+bool Table::prev(){
+    if (--row_ptr >= 0){
+        current_row = data[row_ptr];
+        return true;
+    }else{
+        this->reset();
+        return false;
+    }
+}
+
 Table::~Table(){
     this->drop();
 }
+
 void Table::drop(){
     std::map<int, void*>::iterator it = defaults.begin();
     for (; it != defaults.end(); it++)

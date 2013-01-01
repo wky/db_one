@@ -1,5 +1,6 @@
 #ifndef __DATABASE__
 #define __DATABASE__
+
 #include "table.h"
 #include "db_one.h"
 #include "sqlfuncs.h"
@@ -9,12 +10,18 @@
 
 class DatabaseOne;
 class Table;
+
 class Database
 {
 private:
     DatabaseOne *dbms;
     std::string db_name;
     std::map<std::string, Table*> tables;
+    int make_table(struct REF_LIST *, Table **, std::string& , bool *, char *);
+    void make_cartesian_product(std::vector<std::vector<int> >&, 
+        std::vector<int>&, std::vector<std::pair<std::string, Table*> >&, struct EXPR *);
+    void iterate_select(std::vector<std::vector<int> >&, std::vector<int>&,
+        std::vector<int>&, int, std::vector<std::pair<std::string, Table*> >&, struct EXPR *);
 public:
     Database(const char *, DatabaseOne *);
     std::string& name();

@@ -1,0 +1,29 @@
+create database std;
+create table net (id int default -1,addr text default "unknown",size int default -1);
+insert into net (id,addr,size) values (0,"www.baidu.com",100);
+insert into net (id,addr,size) values (1,"www.google.com",1900);
+insert into net (id,addr,size) values (2,"www.tudou.com",200);
+
+insert into net (id,addr,size) values (3,"www.youku.com",150);
+insert into net (id,addr,size) values (4,"www.qq.com",180);
+insert into net (id,addr,size) values (5,"www.jandan.net",300);
+insert into net (id,addr,size) values (6,"manhua.178.com",900);
+insert into net (id,addr,size) values (7,"www.hexieshe.com",100);
+insert into net (id,addr,size) values (8,"www.wikipedia.org",1040);
+insert into net (id,addr,size) values (9,"www.stackoverflow.com",200);
+
+insert into net (id,size) values (10, 200);
+insert into net (id,size) values (11, 900);
+insert into net (id,size) values (12, 230);
+
+insert into net (id,addr) values (13, "course.pku.edu.cn");
+insert into net (id,addr) values (14, "gmail.com");
+
+insert into net (size) values (260);
+insert into net (size) values (0x900);
+insert into net (size) values (880);
+
+update net set (addr, size) values ("www.nopage.com",25) where   id = -1;
+
+break Table::update_where
+ 

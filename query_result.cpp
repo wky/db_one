@@ -5,44 +5,59 @@
 QueryResult::QueryResult(int error, const char *message){
     err_code = error;
     strncpy(msg, message, MAXLINE);
+    tbl = NULL;
 }
-QueryResult::QueryResult(int error, const char *message, Table *){
+QueryResult::QueryResult(int error, const char *message, Table *res_tbl){
     err_code = error;
-    strncpy(msg, message, MAXLINE);   
+    strncpy(msg, message, MAXLINE);
+    tbl = res_tbl;
 }
 
 QueryResult::~QueryResult(){
-    /* nothing */
+    delete tbl;
 }
 
 int QueryResult::result_count(){
-    return 0;
+    if (tbl != NULL)
+        return tbl->rows_cnt();
+    else
+        return 0;
 }
-    /* copy error message to pointer */
-void QueryResult::message(char * buf){
-    strcpy(buf, this->msg);
+
+char *QueryResult::message(){
+    return this->msg;
+}
+
+int QueryResult::get_code(){
+    return err_code;
 }
     /* number of columns returned */
 int QueryResult::column_count(){
-    return 0;
+    if (tbl != NULL)
+        return tbl->cols_cnt();
+    else
+        return 0;
 }
     /* copy name of column to pointer */
-void QueryResult::column_name(int col, char * name){
-    name[0] = '\0';
+const char *QueryResult::column_name(int col){
+    return tbl->col_name(col).c_str();
 }
     /* data type of column */
 int QueryResult::column_type(int col){
-    return DT_UNKNOWN;
+    if (tbl != NULL)
+        return tbl->col_dt(col);
+    else
+        return DT_UNKNOWN;
 }
     /* iterate through rows */
 bool QueryResult::next_row(){
-    return false;
+    return tbl->next();
 }
 
 bool QueryResult::previous_row(){
-    return false;
+    return tbl->prev();
 }
     /* write data at column to pointer */
-void QueryResult::get_data(int col, void* ptr){
-
+void *QueryResult::get_data(int col){
+    return tbl->retrieve_data(col);
 }
