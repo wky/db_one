@@ -756,6 +756,7 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "mysql.l"
+#define YY_NO_INPUT 1
 #line 3 "mysql.l"
 #include "sqlfuncs.h"
 #include "mysql.tab.h"
@@ -766,7 +767,7 @@ void yyerror(char *s, ...);
 int oldstate;
  
 
-#line 770 "mysql.lex.cpp"
+#line 771 "mysql.lex.cpp"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -827,8 +828,6 @@ extern int yywrap (void );
 #endif
 #endif
 
-    static void yyunput (int c,char *buf_ptr  );
-    
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char *,yyconst char *,int );
 #endif
@@ -953,7 +952,7 @@ YY_DECL
 #line 15 "mysql.l"
 
 
-#line 957 "mysql.lex.cpp"
+#line 956 "mysql.lex.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -1461,7 +1460,7 @@ YY_RULE_SETUP
 #line 113 "mysql.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1465 "mysql.lex.cpp"
+#line 1464 "mysql.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(BTWMODE):
 	yyterminate();
@@ -1789,47 +1788,6 @@ static int yy_get_next_buffer (void)
 	yy_is_jam = (yy_current_state == 299);
 
 	return yy_is_jam ? 0 : yy_current_state;
-}
-
-    static void yyunput (int c, register char * yy_bp )
-{
-	register char *yy_cp;
-    
-    yy_cp = (yy_c_buf_p);
-
-	/* undo effects of setting up yytext */
-	*yy_cp = (yy_hold_char);
-
-	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-		{ /* need to shift things up to make room */
-		/* +2 for EOB chars. */
-		register int number_to_move = (yy_n_chars) + 2;
-		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
-					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		register char *source =
-				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
-
-		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
-			*--dest = *--source;
-
-		yy_cp += (int) (dest - source);
-		yy_bp += (int) (dest - source);
-		YY_CURRENT_BUFFER_LVALUE->yy_n_chars =
-			(yy_n_chars) = YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
-
-		if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-			YY_FATAL_ERROR( "flex scanner push-back overflow" );
-		}
-
-	*--yy_cp = (char) c;
-
-    if ( c == '\n' ){
-        --yylineno;
-    }
-
-	(yytext_ptr) = yy_bp;
-	(yy_hold_char) = *yy_cp;
-	(yy_c_buf_p) = yy_cp;
 }
 
 #ifndef YY_NO_INPUT
@@ -2473,5 +2431,6 @@ void yyfree (void * ptr )
 #define YYTABLES_NAME "yytables"
 
 #line 113 "mysql.l"
+
 
 

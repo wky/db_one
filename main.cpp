@@ -1,7 +1,7 @@
 #include <cstdio>
 #include "db_one.h"
 #include "query_result.h"
-
+#include "display.h"
 char sql_buf[MAXLINE];
 
 int main(int argc, char const *argv[])
@@ -25,9 +25,8 @@ int main(int argc, char const *argv[])
         }
         int cnt = res->result_count();
         printf("%s\n%d row(s) returned\n", res->message(), cnt);
-        /*
-            display data here
-        */
+        if (cnt)
+            db_display(res);
         delete res;
     }
     dbms->shutdown();

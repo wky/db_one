@@ -15,7 +15,6 @@ public:
     QueryResult(int, const char *);
     QueryResult(int, const char *, Table *);
     ~QueryResult();
-    /* negative return value indicates error */
     int result_count();
     /* copy error message to pointer */
     char *message();

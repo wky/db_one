@@ -1,4 +1,4 @@
-%option noyywrap nodefault yylineno case-insensitive
+%option noyywrap noinput nounput nodefault yylineno case-insensitive
 %{
 #include "sqlfuncs.h"
 #include "mysql.tab.h"

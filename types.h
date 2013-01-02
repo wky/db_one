@@ -14,6 +14,7 @@
 #define DT_TEXT     32
 #define DT_BOOL     64
 
+
 #define NEED_FREE_MASK  256
 
 union DataUnion{
