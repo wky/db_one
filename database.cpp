@@ -2,6 +2,7 @@
 #include "error.h"
 #include "eval_ast.h"
 #include <algorithm>
+#include <cstdio>
 
 extern bool treat_as_static;
 extern std::map<std::string, Table*> *tbl_ref_map;
@@ -10,13 +11,35 @@ extern Database *current_db;
 
 class Compare{
 private:
-    std::vector<struct EXPR*> cmp_expr;
-    std::vector<bool> order;
+    std::vector<struct EXPR*>& cmp_expr;
+    std::vector<bool>& order;
+    std::vector<std::pair<std::string, Table*> >& tables;
 public:
-    Compare(std::vector<struct EXPR*>&exprs, std::vector<bool>& asc)
-        :cmp_expr(exprs), order(asc){}
+    Compare(std::vector<struct EXPR*>&exprs, std::vector<bool>& asc,
+        std::vector<std::pair<std::string, Table*> >& tbl_ref_list)
+        :cmp_expr(exprs), order(asc), tables(tbl_ref_list){}
 
     bool operator()(const std::vector<int>& a, const std::vector<int>& b){
+        int i, j, l_dt, r_dt, res_dt;
+        void *l_ptr, *r_ptr, *res;
+        for (i = 0; i < cmp_expr.size(); i++){
+            for (j = 0; j < tables.size(); j++)
+                tables[j].second->set_current_row(a[j]);
+            l_ptr = eval_ast(cmp_expr[i], &l_dt);
+            if (l_ptr == NULL) return false;
+            for (j = 0; j < tables.size(); j++)
+                tables[j].second->set_current_row(b[j]);
+            r_ptr = eval_ast(cmp_expr[i], &r_dt);
+            if (r_ptr == NULL) return false;
+            res = judge_comparison(order[i]?CMP_G:CMP_L, l_ptr, l_dt,
+                r_ptr, r_dt, &res_dt);
+            if (res == NULL) return false;
+            if (*(bool*)res) return true;
+            res = judge_comparison(CMP_E, l_ptr, l_dt,
+                r_ptr, r_dt, &res_dt);
+            if (res == NULL) return false;
+            if (!(*(bool*)res)) return false;
+        }
         return false;
     }
 };
@@ -75,8 +98,11 @@ static void free_col_data(std::vector<std::pair<int, void*> >& val_vec){
         }
 }
 
-int Database::create_table(const char *name, struct COL_DEF_LIST *def, char *buf){
-    std::map<std::string, Table*>::iterator it = tables.find(std::string(name));
+int Database::create_table(const char *name, struct COL_DEF_LIST *def, 
+    char *buf)
+{
+    std::map<std::string, Table*>::iterator it = 
+        tables.find(std::string(name));
     if (it != tables.end()){
         sprintf(buf, "Table \"%s\" exists in Database \"%s\"", name,
             this->name().c_str());
@@ -84,8 +110,10 @@ int Database::create_table(const char *name, struct COL_DEF_LIST *def, char *buf
     }
     struct COL_DEF_LIST *ptr = def;
     int n_col = 0, ret_code = NOERR;
-    std::map<int, void*> default_val;/* column -> data */
-    std::vector<std::pair<int, std::string> > cols;/* pair<data_type, column_name>*/
+    std::map<int, void*> default_val;
+    /* column -> data */
+    std::vector<std::pair<int, std::string> > cols;
+    /* pair<data_type, column_name>*/
     bool previous_static = treat_as_static;
     treat_as_static = true;
     while (ptr){
@@ -93,14 +121,16 @@ int Database::create_table(const char *name, struct COL_DEF_LIST *def, char *buf
             int dt;
             void *val = eval_ast(ptr->def_val, &dt);
             if (val == NULL){
-                sprintf(buf, "Invalid default value for column \"%s\"", ptr->name);
+                sprintf(buf, "Invalid default value for column \"%s\"",
+                    ptr->name);
                 ret_code = EINVAL;
                 break;
             }
             val = dt_convert(val, dt, &(ptr->type));
             default_val.insert(std::pair<int, void*>(n_col, val));
         }
-        cols.push_back(std::pair<int, std::string>(ptr->type, std::string(ptr->name)));
+        cols.push_back(std::pair<int, std::string>(ptr->type,
+            std::string(ptr->name)));
         n_col++;
         ptr = ptr->next;
     }
@@ -113,10 +143,11 @@ int Database::create_table(const char *name, struct COL_DEF_LIST *def, char *buf
     return NOERR;
 }
 
-int Database::insert_into(const char *tbl_name, struct COL_LISTING *col_list, 
+int Database::insert_into(const char *tbl_name, struct COL_LISTING *col_list,
     struct EXPR_LIST *val_list, char *buf)
 {
-    std::map<std::string, Table*>::iterator it = tables.find(std::string(tbl_name));
+    std::map<std::string, Table*>::iterator it =
+        tables.find(std::string(tbl_name));
     if (it == tables.end()){
         sprintf(buf, "Table \"%s\" does not exist in Database\"%s\".", 
             tbl_name, this->name().c_str());
@@ -136,7 +167,8 @@ int Database::insert_into(const char *tbl_name, struct COL_LISTING *col_list,
         if (val_ptr->expr != NULL){
             data = eval_ast(val_ptr->expr, &dt);
             if (data == NULL){
-                sprintf(buf, "Invalid value for column \"%s\"", col_ptr->name);
+                sprintf(buf, "Invalid value for column \"%s\"",
+                    col_ptr->name);
                 ret_code = EINVAL;
                 break;
             }
@@ -151,7 +183,8 @@ int Database::insert_into(const char *tbl_name, struct COL_LISTING *col_list,
         return ret_code;
     }
     if (col_ptr || val_ptr){
-        sprintf(buf, "Number of insert elements and number of columns does not match.");
+        sprintf(buf, "Number of insert elements and number of columns\
+            does not match.");
         return ESYNTAX;
     }
     Table *tbl = (*it).second;
@@ -172,7 +205,8 @@ int Database::insert_into(const char *tbl_name, struct COL_LISTING *col_list,
 int Database::update(const char *tbl_name, struct COL_LISTING *col_list, 
     struct EXPR_LIST *val_list, struct EXPR *where, char *buf)
 {
-    std::map<std::string, Table*>::iterator it = tables.find(std::string(tbl_name));
+    std::map<std::string, Table*>::iterator it =
+        tables.find(std::string(tbl_name));
     if (it == tables.end()){
         sprintf(buf, "Table \"%s\" does not exist in Database\"%s\".", 
             tbl_name, this->name().c_str());
@@ -192,7 +226,8 @@ int Database::update(const char *tbl_name, struct COL_LISTING *col_list,
         if (val_ptr->expr != NULL){
             data = eval_ast(val_ptr->expr, &dt);
             if (data == NULL){
-                sprintf(buf, "Invalid value for column \"%s\"", col_ptr->name);
+                sprintf(buf, "Invalid value for column \"%s\"",
+                    col_ptr->name);
                 ret_code = EINVAL;
                 break;
             }
@@ -207,7 +242,8 @@ int Database::update(const char *tbl_name, struct COL_LISTING *col_list,
         return ret_code;
     }
     if (col_ptr || val_ptr){
-        sprintf(buf, "Number of insert elements and number of columns does not match.");
+        sprintf(buf, "Number of insert elements and number of columns\
+            does not match.");
         return ESYNTAX;
     }
     Table *tbl = (*it).second;
@@ -223,8 +259,11 @@ int Database::update(const char *tbl_name, struct COL_LISTING *col_list,
     return ENOIMPL;
 }
 
-int Database::delete_from(const char *tbl_name, struct EXPR *where, char *buf){
-    std::map<std::string, Table*>::iterator it = tables.find(std::string(tbl_name));
+int Database::delete_from(const char *tbl_name, struct EXPR *where,
+    char *buf)
+{
+    std::map<std::string, Table*>::iterator it =
+        tables.find(std::string(tbl_name));
     if (it == tables.end()){
         sprintf(buf, "Table \"%s\" does not exist in Database\"%s\".",
             tbl_name, this->name().c_str());
@@ -238,28 +277,30 @@ int Database::delete_from(const char *tbl_name, struct EXPR *where, char *buf){
 int Database::make_table(struct REF_LIST *ref_ptr, Table **tbl_ptr_addr,
     std::string& alias, bool *tmp_tbl, char *buf)
 {
-    Table *l_tbl;
     std::map<std::string, Table*>::iterator it;
     int ret_code;
     if (ref_ptr->type == 0){
-        it = tables.find(std::string(ref_ptr->table.name));
+        std::map<std::string, Table*>::iterator it = 
+            tables.find(std::string(ref_ptr->table.name));
         if (it == tables.end()){
-            sprintf(buf, "Table \"%s\" does not exist in Database\"%s\".", 
+            sprintf(buf, "Table \"%s\" does not exist in Database\"%s\".",
                 ref_ptr->table.name, this->name().c_str());
             return ENOTBL;
         }
-        l_tbl = (*it).second;
+        *tbl_ptr_addr = (*it).second;
         *tmp_tbl = false;
     }else if (ref_ptr->type == 2){
-        ret_code = this->run_select(ref_ptr->table.sub_query, &l_tbl, buf);
+        Table *tbl;
+        ret_code = this->run_select(ref_ptr->table.sub_query, &tbl, buf);
         if (ret_code != NOERR)
             return ret_code;
+        *tbl_ptr_addr = tbl;
         *tmp_tbl = true;
     }
     if (ref_ptr->alias != NULL)
         alias = ref_ptr->alias;
     else
-        alias = l_tbl->name();
+        alias = (*tbl_ptr_addr)->name();
     if (ref_ptr->join_param == NULL)
         return NOERR;
     else{
@@ -271,7 +312,8 @@ int Database::make_table(struct REF_LIST *ref_ptr, Table **tbl_ptr_addr,
     bool r_tmp;
     std::string r_name;
     struct EXPR *join_cond = ref_ptr->join_param->join_cond;
-    ret_code = this->make_table(ref_ptr->join_param->join_with, &r_tbl, r_name, r_tmp, buf);
+    ret_code = this->make_table(ref_ptr->join_param->join_with, 
+        &r_tbl, r_name, r_tmp, buf);
     if (ret_code != NOERR){
         if (*tmp_tbl)
             delete l_tbl;
@@ -295,9 +337,14 @@ int Database::make_table(struct REF_LIST *ref_ptr, Table **tbl_ptr_addr,
 
 void Database::iterate_select(std::vector<std::vector<int> >&products,
     std::vector<int>& row_ref, std::vector<int>& total_rows, int level,
-    std::vector<std::pair<std::string, Table*> >& tbl_ref_list, struct EXPR *where)
+    std::vector<std::pair<std::string, Table*> >& tbl_ref_list,
+    struct EXPR *where)
 {
     if (level == tbl_ref_list.size()){
+        if (where == NULL){
+            products.push_back(row_ref);
+            return;
+        }
         for (int i = 0; i < level; ++i)
             tbl_ref_list[i].second->set_current_row(row_ref[i]);
         int dt_bool = DT_BOOL, dt;
@@ -310,12 +357,17 @@ void Database::iterate_select(std::vector<std::vector<int> >&products,
         delete_tmp(cond);
         return;
     }
-    for (row_ref[level] = 0; row_ref[level] < total_rows[level]; row_ref[level]++)
-        this->iterate_select(products, row_ref, total_rows, level + 1, tbl_ref_list, where);
+    row_ref[level] = 0;
+    while (row_ref[level] < total_rows[level]){
+        this->iterate_select(products, row_ref, total_rows, level + 1,
+            tbl_ref_list, where);
+        row_ref[level]++;
+    }
 }
 
-void Database::make_cartesian_product(std::vector<std::vector<int> >& products,
-    std::vector<int>& row_ref, std::vector<std::pair<std::string, Table*> >& tbl_ref_list,
+void Database::make_cartesian_product(
+    std::vector<std::vector<int> >& products, std::vector<int>& row_ref,
+    std::vector<std::pair<std::string, Table*> >& tbl_ref_list,
     struct EXPR *where)
 {
     std::vector<int> total_rows(tbl_ref_list.size());
@@ -327,7 +379,9 @@ void Database::make_cartesian_product(std::vector<std::vector<int> >& products,
     this->iterate_select(products, row_ref, total_rows, 0, tbl_ref_list, where);
 }
 
-int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char *buf){
+int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr,
+    char *buf)
+{
     *tbl_ptr_addr = NULL;
     std::map<std::string, Table*> *previous_map = tbl_ref_map;
     tbl_ref_map = new std::map<std::string, Table*>();
@@ -341,7 +395,7 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char 
     struct REF_LIST *ref_ptr = select->ref_list;
     Table *tbl;
     std::string alias;
-    bool is_tmp;
+    bool is_tmp = false;
     while (ref_ptr != NULL){
         ret_code = this->make_table(ref_ptr, &tbl, alias, &is_tmp, buf);
         if (ret_code != NOERR)
@@ -351,6 +405,7 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char 
         tbl_is_tmp.push_back(is_tmp);
         tbl_ref_map->insert(tbl_pair);        
         tbl_cnt++;
+        ref_ptr = ref_ptr->next;
     }
     if (ret_code != NOERR){
         delete tbl_ref_map;
@@ -364,17 +419,19 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char 
     }
     std::vector<std::vector<int> > products;
     std::vector<int> row_ref(tbl_cnt);
-    this->make_cartesian_product(products, row_ref, tbl_ref_list, select->where);
+    this->make_cartesian_product(products, row_ref, tbl_ref_list,
+        select->where);
     if (select->order_list){
         std::vector<struct EXPR*> cmp_expr;
         std::vector<bool> order;
         struct ORDER_LIST *order_ptr = select->order_list;
         while (order_ptr != NULL){
             cmp_expr.push_back(order_ptr->expr);
-            order.push_back(order_ptr->type == 0);
+            order.push_back(order_ptr->type == 1);
             order_ptr = order_ptr->next;
         }
-        stable_sort(products.begin(), products.end(), Compare(cmp_expr, order));   
+        stable_sort(products.begin(), products.end(),
+            Compare(cmp_expr, order, tbl_ref_list));
     }
     struct SELECT_LIST *sel_ptr = select->select_list;
     std::vector<std::pair<int, std::string> > col_def;
@@ -384,7 +441,8 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char 
         for (int i = 0; i < tbl_ref_list.size(); i++){
             Table *sub_tbl = tbl_ref_list[i].second;
             for (int j = 0; j < sub_tbl->cols_cnt(); j++)
-                col_def.push_back(std::pair<int, std::string>(sub_tbl->col_dt(i),
+                col_def.push_back(std::pair<int, std::string>(
+                    sub_tbl->col_dt(j),
                     tbl_ref_list[i].first + "_" + sub_tbl->col_name(j)));
             total_cols += sub_tbl->cols_cnt();
         }
@@ -396,9 +454,9 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char 
             int base_idx = 0;
             for (int j = 0; j < tbl_ref_list.size(); j++){
                 Table *sub_tbl = tbl_ref_list[j].second;
-                DataUnion *column = sub_tbl->access_row(products[i][j]);
+                sub_tbl->set_current_row(products[i][j]);
                 for (int k = 0; k < sub_tbl->cols_cnt(); k++)
-                    sub_tbl->copy_data(raw_data[i] + base_idx + k, k, column + k);
+                    sub_tbl->copy_column(raw_data[i] + base_idx + k, k);
                 base_idx += sub_tbl->cols_cnt();
             }
         }
@@ -417,22 +475,25 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char 
                     ret_code = EINVAL;
                     break;
                 }
-                col_def.push_back(std::pair<int, std::string>(dt & ~NEED_FREE_MASK,
-                    std::string(sel_ptr->alias)));
-                if (dt & ~NEED_FREE_MASK)
+                col_def.push_back(std::pair<int, std::string>(
+                    dt & ~NEED_FREE_MASK, std::string(sel_ptr->alias)));
+                if (dt & NEED_FREE_MASK)
                     delete_tmp(dat);
                 col_expr.push_back(sel_ptr->expr);
                 sel_ptr = sel_ptr->next;
                 total_cols++;
             }
             if (ret_code == NOERR){
-                Table *result_tbl = new Table("_tmp_", this, col_def, no_val);
-                std::vector<DataUnion *>& raw_data = result_tbl->access_raw_data();
+                Table *result_tbl = new Table("_tmp_", this, col_def,
+                    no_val);
+                std::vector<DataUnion *>& raw_data = 
+                    result_tbl->access_raw_data();
                 raw_data.resize(products.size());
                 for (int i = 0; i < products.size(); i++){
                     raw_data[i] = new DataUnion[total_cols];
                     for (int j = 0; j < tbl_ref_list.size(); j++)
-                        tbl_ref_list[j].second->set_current_row(products[i][j]);
+                        tbl_ref_list[j].second->
+                            set_current_row(products[i][j]);
                     for (int j = 0; j < col_expr.size(); j++){
                         int dt;
                         void *dat = eval_ast(col_expr[j], &dt);
@@ -441,7 +502,7 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr, char 
                             break;
                         }
                         result_tbl->copy_data(raw_data[i] + j, j, dat);
-                        if (dt & ~NEED_FREE_MASK)
+                        if (dt & NEED_FREE_MASK)
                             delete_tmp(dat);
                     }
                     if (ret_code != NOERR){

@@ -1,6 +1,8 @@
 #include "table.h"
 #include "eval_ast.h"
 #include "error.h"
+#include <cstdio>
+#include <cstring>
 
 extern bool treat_as_static;
 extern std::map<std::string, Table*> *tbl_ref_map;
@@ -14,19 +16,15 @@ Table::Table(const char *name, Database *db,
         col_map.insert(std::pair<std::string, int>(cols[c].second, c));
     std::map<int, void*>::iterator it = defaults.begin();
     while (it != defaults.end()){
-        int dt = col_list[(*it).first].first;
+        int& dt = col_list[(*it).first].first;
         if ((dt & NEED_FREE_MASK) == 0){
             DataUnion *dat = new DataUnion;
-            switch (dt & ~NEED_FREE_MASK){
-                case DT_CHAR:   dat->c = *(char*)((*it).second); break;
-                case DT_INT:    dat->i = *(int*)((*it).second); break;
-                case DT_LONG:   dat->l = *(long*)((*it).second); break;
-                case DT_FLOAT:  dat->f = *(float*)((*it).second); break;
-                case DT_DOUBLE: dat->d = *(double*)((*it).second); break;
-                case DT_TEXT:   dat->s = new_strdup((char*)((*it).second), strlen((char*)((*it).second))); break;
-                case DT_BOOL:   dat->b = *(bool*)((*it).second); break;
-            }
-            col_list[(*it).first].first |= NEED_FREE_MASK;
+            this->copy_data(dat, (*it).first, (*it).second);
+            if (dt & DT_TEXT)
+                (*it).second = dat->s;
+            else
+                (*it).second = (void *)dat;
+            dt |= NEED_FREE_MASK;
         }
         it++;
     }
@@ -217,6 +215,15 @@ void Table::copy_data(DataUnion *ptr, int col){
     this->copy_data(ptr, col, (*it).second);
 }
 
+void Table::copy_column(DataUnion *ptr, int col){
+    void *dat;
+    if (col_list[col].first & DT_TEXT)
+        dat = current_row[col].s;
+    else
+        dat = current_row + col;
+    this->copy_data(ptr, col, dat);
+}
+
 void Table::set_current_row(int id){
     if (id < 0 || id > data.size())
         current_row = NULL;
@@ -260,10 +267,16 @@ int Table::cols_cnt(){
 }
 
 std::string& Table::col_name(int col){
+    /*
+    if (col < 0 || col >= col_list.size())
+        return "";
+    */
     return col_list[col].second;
 }
 
 int Table::col_dt(int col){
+    if (col < 0 || col >= col_list.size())
+        return DT_UNKNOWN;
     return col_list[col].first & ~NEED_FREE_MASK;
 }
 

@@ -24,6 +24,7 @@ private:
     DataUnion *current_row;
     int row_ptr;
     void copy_data(DataUnion *, int);
+    DataUnion *access_row(int);
 public:
     Table(const char *, Database *, std::vector<std::pair<int, std::string> >&, std::map<int, void*>&);
     int insert(std::vector<std::string>&, std::vector<std::pair<int, void*> >&, char *);
@@ -40,8 +41,8 @@ public:
     void *retrieve_data(std::string&, int *);
     void *retrieve_data(char *, int *);
     void *retrieve_data(int);
-    DataUnion *access_row(int);
     std::vector<DataUnion *>& access_raw_data();
+    void copy_column(DataUnion *ptr, int);
     void copy_data(DataUnion *, int, void *);
     void set_current_row(int);
     void reset();

@@ -25,9 +25,8 @@ int main(int argc, char const *argv[])
             printf("fatal error.\n");
             continue;
         }
-        
+        printf("%s\n", res->message());
         db_display(res);
-        
         delete res;
     }
     dbms->shutdown();

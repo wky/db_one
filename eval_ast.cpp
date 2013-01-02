@@ -26,7 +26,7 @@
 bool treat_as_static = true;
 std::map<std::string, Table*> *tbl_ref_map = NULL;
 char *err_buf = NULL;
-Database *current_db = NULL;
+Database *eval_db = NULL;
 
 void *retrieve(char *tbl_name, char *col_name, int *dt_ptr){
     if (tbl_ref_map == NULL){
@@ -463,7 +463,7 @@ void *eval_ast(struct EXPR *expr, int *dt_ptr){
         case EXPR_NOTIN_SUB:
             l_ptr = eval_ast(expr->self.test, &l_dt);
             ABORT_NULL(l_ptr);
-            ret_code = current_db->run_select(expr->child.sub_query, &subq, err_buf);
+            ret_code = eval_db->run_select(expr->child.sub_query, &subq, err_buf);
             if (ret_code != NOERR){
                 *dt_ptr = DT_UNKNOWN;
                 return NULL;

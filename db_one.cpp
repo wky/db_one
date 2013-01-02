@@ -9,7 +9,7 @@
 extern STMT_AST * ast;
 extern char my_parse_msg[MAXLINE];
 extern int yydebug;
-extern Database *current_db;
+extern Database *eval_db;
 DatabaseOne::DatabaseOne(){
     this->current_db = NULL;
 }
@@ -24,7 +24,7 @@ bool DatabaseOne::init(){
 
 QueryResult *DatabaseOne::run_query(char * sql){
     int parse_ret;
-    QueryResult *res;
+    QueryResult *res = NULL;
     /* yydebug = 1;*/
     YY_BUFFER_STATE bp = yy_scan_string(sql);
     yy_switch_to_buffer(bp);
@@ -37,7 +37,7 @@ QueryResult *DatabaseOne::run_query(char * sql){
     if (ast == NULL)
         return NULL;
     std::map<std::string, Database*>::iterator it;
-    int ret_code;
+    int ret_code = NOERR;
     struct TABLE_OP *table_op = (struct TABLE_OP *)ast;
     Table *select_res;
     switch (ast->type){
@@ -48,7 +48,7 @@ QueryResult *DatabaseOne::run_query(char * sql){
                 sprintf(sql, "Database \"%s\" created.", ast->name);
                 res = new QueryResult(NOERR, sql);
                 this->current_db = d;
-                current_db = d;
+                eval_db = d;
             }else{
                 sprintf(sql, "Database \"%s\" exists.", ast->name);
                 res = new QueryResult(EDUPDB, sql);
@@ -61,7 +61,7 @@ QueryResult *DatabaseOne::run_query(char * sql){
                 res = new QueryResult(ENODB, sql);
             }else{
                 this->current_db = (*it).second;
-                current_db = (*it).second;
+                eval_db = (*it).second;
                 sprintf(sql, "Switched to Database \"%s\".", ast->name);
                 res = new QueryResult(NOERR, sql);
             }
@@ -72,10 +72,9 @@ QueryResult *DatabaseOne::run_query(char * sql){
                 sprintf(sql, "Database \"%s\" does not exist.", ast->name);
                 res = new QueryResult(ENODB, sql);
             }else{
-                current_db = (*it).second;
-                current_db->drop();
-                delete current_db;
-                current_db = NULL;
+                ((*it).second)->drop();
+                delete (*it).second;
+                eval_db = NULL;
                 this->current_db = NULL;
                 db.erase(it);
                 sprintf(sql, "Database \"%s\" dropped.", ast->name);
