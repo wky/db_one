@@ -126,6 +126,8 @@ int yylex();
 
 %start stmt
 
+%destructor { delete[] (char*)($$); } NAME STRING
+
 %%
 
 /* $accept: stmt_list $end*/

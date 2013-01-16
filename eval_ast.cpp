@@ -50,10 +50,21 @@ void *retrieve(char *tbl_name, char *col_name, int *dt_ptr){
             tbl = (*it).second;
             if (tbl->column_exist(col_name))
                 break;
+            it++;
+            tbl = NULL;
+        }
+        if (tbl == NULL){
+            PRINT_ERR(err_buf, "No Column named \"%s\" was found.", col_name);
+            *dt_ptr = DT_UNKNOWN;
+            return NULL;
         }
     }
-    if (tbl == NULL)
-        tbl = (*(tbl_ref_map->begin())).second;
+    if (tbl == NULL){
+        /* very wierd */
+        printf("very wierd\n");
+        *dt_ptr = DT_UNKNOWN;
+        return NULL;
+    }
     void *ret = tbl->retrieve_data(col_name, dt_ptr);
     if (ret == NULL){
         PRINT_ERR(err_buf, "No data found for Column \"%s\" in Table \"%s\".", 
@@ -581,7 +592,16 @@ void *dt_convert(void *data, int from_type, int *to_type){
     return data;
 }
 
+void optional_free(void *ptr, int dt){
+    if ((ptr) && ((dt) & NEED_FREE_MASK)){
+        if (dt & DT_TEXT)
+            delete[] (char*)(ptr);
+        else
+            delete (tmp_num_val*)(ptr);
+    }
+}
+/*
 void delete_tmp(void *ptr){
     delete (tmp_num_val*)ptr;
 }
-
+*/

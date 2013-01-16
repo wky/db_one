@@ -582,16 +582,16 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   133,   133,   134,   135,   136,   138,   140,   143,   144,
-     145,   146,   147,   148,   149,   150,   151,   152,   154,   155,
-     156,   157,   158,   159,   162,   163,   164,   165,   166,   168,
-     171,   172,   173,   174,   183,   184,   185,   186,   187,   188,
-     189,   190,   191,   194,   197,   200,   203,   206,   210,   211,
-     213,   225,   226,   227,   228,   229,   236,   242,   245,   249,
-     250,   253,   255,   256,   260,   264,   265,   268,   271,   278,
-     283,   286,   296,   297,   300,   301,   304,   305,   308,   309,
-     313,   317,   318,   319,   322,   326,   327,   330,   332,   345,
-     349
+       0,   135,   135,   136,   137,   138,   140,   142,   145,   146,
+     147,   148,   149,   150,   151,   152,   153,   154,   156,   157,
+     158,   159,   160,   161,   164,   165,   166,   167,   168,   170,
+     173,   174,   175,   176,   185,   186,   187,   188,   189,   190,
+     191,   192,   193,   196,   199,   202,   205,   208,   212,   213,
+     215,   227,   228,   229,   230,   231,   238,   244,   247,   251,
+     252,   255,   257,   258,   262,   266,   267,   270,   273,   280,
+     285,   288,   298,   299,   302,   303,   306,   307,   310,   311,
+     315,   319,   320,   321,   324,   328,   329,   332,   334,   347,
+     351
 };
 #endif
 
@@ -1347,6 +1347,16 @@ yydestruct (yymsg, yytype, yyvaluep)
 
   switch (yytype)
     {
+      case 3: /* "NAME" */
+#line 129 "mysql.ypp"
+	{ delete[] (char*)((yyvaluep->strval)); };
+#line 1354 "mysql.tab.cpp"
+	break;
+      case 4: /* "STRING" */
+#line 129 "mysql.ypp"
+	{ delete[] (char*)((yyvaluep->strval)); };
+#line 1359 "mysql.tab.cpp"
+	break;
 
       default:
 	break;
@@ -1654,242 +1664,242 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 133 "mysql.ypp"
+#line 135 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_NAME((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 3:
-#line 134 "mysql.ypp"
+#line 136 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_NAMEFIELD((yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval)); ;}
     break;
 
   case 4:
-#line 135 "mysql.ypp"
+#line 137 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_STRING((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 5:
-#line 136 "mysql.ypp"
+#line 138 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_INTNUM((yyvsp[(1) - (1)].intval)); ;}
     break;
 
   case 6:
-#line 138 "mysql.ypp"
+#line 140 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_APPROXNUM((yyvsp[(1) - (1)].floatval)); ;}
     break;
 
   case 7:
-#line 140 "mysql.ypp"
+#line 142 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_BOOLEAN((yyvsp[(1) - (1)].intval)); ;}
     break;
 
   case 8:
-#line 143 "mysql.ypp"
+#line 145 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_ADD, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 9:
-#line 144 "mysql.ypp"
+#line 146 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_SUB, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 10:
-#line 145 "mysql.ypp"
+#line 147 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_MUL, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 11:
-#line 146 "mysql.ypp"
+#line 148 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_DIV, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 12:
-#line 147 "mysql.ypp"
+#line 149 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_MOD, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 13:
-#line 148 "mysql.ypp"
+#line 150 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_MOD, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 14:
-#line 149 "mysql.ypp"
+#line 151 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_NEG, (yyvsp[(2) - (2)].expr_tree), NULL); ;}
     break;
 
   case 15:
-#line 150 "mysql.ypp"
+#line 152 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_BITFLIP, (yyvsp[(2) - (2)].expr_tree), NULL); ;}
     break;
 
   case 16:
-#line 151 "mysql.ypp"
+#line 153 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_LOGAND, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 17:
-#line 152 "mysql.ypp"
+#line 154 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_LOGOR, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 18:
-#line 154 "mysql.ypp"
+#line 156 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_BITOR, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 19:
-#line 155 "mysql.ypp"
+#line 157 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_BITAND, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 20:
-#line 156 "mysql.ypp"
+#line 158 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_BITXOR, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 21:
-#line 157 "mysql.ypp"
+#line 159 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_LOGNOT, (yyvsp[(2) - (2)].expr_tree), NULL); ;}
     break;
 
   case 22:
-#line 158 "mysql.ypp"
+#line 160 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_OP(OP_LOGNOT, (yyvsp[(2) - (2)].expr_tree), NULL); ;}
     break;
 
   case 23:
-#line 159 "mysql.ypp"
+#line 161 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_CMP((yyvsp[(2) - (3)].cmptok), (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 24:
-#line 162 "mysql.ypp"
+#line 164 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_RANGE((yyvsp[(1) - (5)].expr_tree), (yyvsp[(3) - (5)].expr_tree), (yyvsp[(5) - (5)].expr_tree)); ;}
     break;
 
   case 25:
-#line 163 "mysql.ypp"
+#line 165 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_LIST(true, (yyvsp[(1) - (5)].expr_tree), (yyvsp[(4) - (5)].list)); ;}
     break;
 
   case 26:
-#line 164 "mysql.ypp"
+#line 166 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_LIST(false, (yyvsp[(1) - (6)].expr_tree), (yyvsp[(5) - (6)].list)); ;}
     break;
 
   case 27:
-#line 165 "mysql.ypp"
+#line 167 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_SUBQ(true, (yyvsp[(1) - (3)].expr_tree), (yyvsp[(3) - (3)].sel_stmt)); ;}
     break;
 
   case 28:
-#line 166 "mysql.ypp"
+#line 168 "mysql.ypp"
     { (yyval.expr_tree) = newEXPR_SUBQ(false, (yyvsp[(1) - (4)].expr_tree), (yyvsp[(4) - (4)].sel_stmt)); ;}
     break;
 
   case 29:
-#line 168 "mysql.ypp"
+#line 170 "mysql.ypp"
     { (yyval.expr_tree) = (yyvsp[(2) - (3)].expr_tree); ;}
     break;
 
   case 30:
-#line 171 "mysql.ypp"
+#line 173 "mysql.ypp"
     { (yyval.list) = new EXPR_LIST; (yyval.list)->expr = (yyvsp[(1) - (1)].expr_tree); (yyval.list)->next = NULL; ;}
     break;
 
   case 31:
-#line 172 "mysql.ypp"
+#line 174 "mysql.ypp"
     { (yyval.list) = new EXPR_LIST; (yyval.list)->expr = NULL; (yyval.list)->next = NULL; ;}
     break;
 
   case 32:
-#line 173 "mysql.ypp"
+#line 175 "mysql.ypp"
     { (yyval.list) = (yyvsp[(1) - (3)].list); expr_list_append((yyval.list), (yyvsp[(3) - (3)].expr_tree)); ;}
     break;
 
   case 33:
-#line 174 "mysql.ypp"
+#line 176 "mysql.ypp"
     { (yyval.list) = (yyvsp[(1) - (3)].list); expr_list_append((yyval.list), NULL); ;}
     break;
 
   case 34:
-#line 183 "mysql.ypp"
-    { ast = (yyvsp[(1) - (2)].stmt_ast); ;}
-    break;
-
-  case 35:
-#line 184 "mysql.ypp"
-    { ast = (yyvsp[(1) - (2)].stmt_ast); ;}
-    break;
-
-  case 36:
 #line 185 "mysql.ypp"
     { ast = (yyvsp[(1) - (2)].stmt_ast); ;}
     break;
 
-  case 37:
+  case 35:
 #line 186 "mysql.ypp"
+    { ast = (yyvsp[(1) - (2)].stmt_ast); ;}
+    break;
+
+  case 36:
+#line 187 "mysql.ypp"
+    { ast = (yyvsp[(1) - (2)].stmt_ast); ;}
+    break;
+
+  case 37:
+#line 188 "mysql.ypp"
     { ast = (STMT_AST *)(yyvsp[(1) - (2)].table_op); ;}
     break;
 
   case 38:
-#line 187 "mysql.ypp"
+#line 189 "mysql.ypp"
     { ast = (STMT_AST *)(yyvsp[(1) - (2)].stmt_ast); ;}
     break;
 
   case 39:
-#line 188 "mysql.ypp"
+#line 190 "mysql.ypp"
     { ast = (STMT_AST *)(yyvsp[(1) - (2)].sel_stmt); ;}
     break;
 
   case 40:
-#line 189 "mysql.ypp"
-    { ast = (STMT_AST *)(yyvsp[(1) - (2)].table_op); ;}
-    break;
-
-  case 41:
-#line 190 "mysql.ypp"
-    { ast = (STMT_AST *)(yyvsp[(1) - (2)].table_op); ;}
-    break;
-
-  case 42:
 #line 191 "mysql.ypp"
     { ast = (STMT_AST *)(yyvsp[(1) - (2)].table_op); ;}
     break;
 
+  case 41:
+#line 192 "mysql.ypp"
+    { ast = (STMT_AST *)(yyvsp[(1) - (2)].table_op); ;}
+    break;
+
+  case 42:
+#line 193 "mysql.ypp"
+    { ast = (STMT_AST *)(yyvsp[(1) - (2)].table_op); ;}
+    break;
+
   case 43:
-#line 194 "mysql.ypp"
+#line 196 "mysql.ypp"
     { (yyval.stmt_ast) = newSTMT_AST(AST_CREATE_DB, (yyvsp[(3) - (3)].strval)); ;}
     break;
 
   case 44:
-#line 197 "mysql.ypp"
+#line 199 "mysql.ypp"
     { (yyval.stmt_ast) = newSTMT_AST(AST_USE_DB, (yyvsp[(3) - (3)].strval)); ;}
     break;
 
   case 45:
-#line 200 "mysql.ypp"
+#line 202 "mysql.ypp"
     { (yyval.stmt_ast) = newSTMT_AST(AST_DROP_DB, (yyvsp[(3) - (3)].strval)); ;}
     break;
 
   case 46:
-#line 203 "mysql.ypp"
+#line 205 "mysql.ypp"
     { (yyval.stmt_ast) = newSTMT_AST(AST_DROP_TABLE, (yyvsp[(3) - (3)].strval)); ;}
     break;
 
   case 47:
-#line 207 "mysql.ypp"
+#line 209 "mysql.ypp"
     { (yyval.table_op) = newTABLE_OP(AST_CREATE_TABLE, (yyvsp[(3) - (6)].strval), (yyvsp[(5) - (6)].col_def), NULL, NULL, NULL); ;}
     break;
 
   case 49:
-#line 211 "mysql.ypp"
+#line 213 "mysql.ypp"
     { (yyval.col_def) = (yyvsp[(1) - (3)].col_def); col_def_list_append((yyval.col_def), (yyvsp[(3) - (3)].col_def)); ;}
     break;
 
   case 50:
-#line 214 "mysql.ypp"
+#line 216 "mysql.ypp"
     { (yyval.col_def) = new COL_DEF_LIST; (yyval.col_def)->name = (yyvsp[(1) - (3)].strval); (yyval.col_def)->type = (yyvsp[(2) - (3)].intval); 
               (yyval.col_def)->attr = (yyvsp[(3) - (3)].intval);
              /* if ($3 & 4)
@@ -1902,195 +1912,195 @@ yyreduce:
     break;
 
   case 51:
-#line 225 "mysql.ypp"
+#line 227 "mysql.ypp"
     { (yyval.intval) = DT_INT; ;}
     break;
 
   case 52:
-#line 226 "mysql.ypp"
+#line 228 "mysql.ypp"
     { (yyval.intval) = DT_LONG; ;}
     break;
 
   case 53:
-#line 227 "mysql.ypp"
+#line 229 "mysql.ypp"
     { (yyval.intval) = DT_FLOAT; ;}
     break;
 
   case 54:
-#line 228 "mysql.ypp"
+#line 230 "mysql.ypp"
     { (yyval.intval) = DT_DOUBLE; ;}
     break;
 
   case 55:
-#line 229 "mysql.ypp"
+#line 231 "mysql.ypp"
     { (yyval.intval) = DT_TEXT; ;}
     break;
 
   case 56:
-#line 236 "mysql.ypp"
+#line 238 "mysql.ypp"
     { (yyval.intval) = 0; default_expr = NULL; /* ref_table = NULL; */ ;}
     break;
 
   case 57:
-#line 242 "mysql.ypp"
+#line 244 "mysql.ypp"
     { (yyval.intval) = 8; default_expr = (yyvsp[(2) - (2)].expr_tree); ;}
     break;
 
   case 58:
-#line 246 "mysql.ypp"
+#line 248 "mysql.ypp"
     { (yyval.sel_stmt) = newSELECT(AST_SELECT, (yyvsp[(3) - (7)].select_list), (yyvsp[(5) - (7)].table_ref_list), (yyvsp[(6) - (7)].expr_tree), (yyvsp[(7) - (7)].order)); (yyval.sel_stmt)->option = (yyvsp[(2) - (7)].intval); ;}
     break;
 
   case 59:
-#line 249 "mysql.ypp"
+#line 251 "mysql.ypp"
     { (yyval.intval) = 0; ;}
     break;
 
   case 60:
-#line 250 "mysql.ypp"
+#line 252 "mysql.ypp"
     { (yyval.intval) = 0; ;}
     break;
 
   case 61:
-#line 254 "mysql.ypp"
+#line 256 "mysql.ypp"
     { (yyval.select_list) = new SELECT_LIST; (yyval.select_list)->type = 0; (yyval.select_list)->next = NULL; (yyval.select_list)->alias = NULL; (yyval.select_list)->expr = NULL;;}
     break;
 
   case 63:
-#line 257 "mysql.ypp"
+#line 259 "mysql.ypp"
     { (yyval.select_list) = (yyvsp[(1) - (3)].select_list); select_list_append((yyval.select_list), (yyvsp[(3) - (3)].select_list)); ;}
     break;
 
   case 64:
-#line 261 "mysql.ypp"
+#line 263 "mysql.ypp"
     { (yyval.select_list) = new SELECT_LIST; (yyval.select_list)->type = 1; (yyval.select_list)->expr = (yyvsp[(1) - (3)].expr_tree); (yyval.select_list)->next = NULL; (yyval.select_list)->alias = (yyvsp[(3) - (3)].strval); ;}
     break;
 
   case 66:
-#line 265 "mysql.ypp"
+#line 267 "mysql.ypp"
     { (yyval.table_ref_list) = (yyvsp[(1) - (3)].table_ref_list); ref_list_append((yyval.table_ref_list), (yyvsp[(3) - (3)].table_ref_list)); ;}
     break;
 
   case 67:
-#line 268 "mysql.ypp"
+#line 270 "mysql.ypp"
     { (yyval.table_ref_list) = (yyvsp[(1) - (2)].table_ref_list); (yyval.table_ref_list)->join_param = (yyvsp[(2) - (2)].join); ;}
     break;
 
   case 68:
-#line 272 "mysql.ypp"
+#line 274 "mysql.ypp"
     { (yyval.table_ref_list) = new struct REF_LIST; (yyval.table_ref_list)->type = 0; 
                   (yyval.table_ref_list)->table.name = (yyvsp[(1) - (2)].strval); (yyval.table_ref_list)->alias = (yyvsp[(2) - (2)].strval); (yyval.table_ref_list)->next = NULL; ;}
     break;
 
   case 69:
-#line 279 "mysql.ypp"
+#line 281 "mysql.ypp"
     { (yyval.table_ref_list) = new struct REF_LIST; (yyval.table_ref_list)->type = 2;
                   (yyval.table_ref_list)->table.sub_query = (yyvsp[(1) - (3)].sel_stmt); (yyval.table_ref_list)->alias = (yyvsp[(3) - (3)].strval); (yyval.table_ref_list)->next = NULL;;}
     break;
 
   case 70:
-#line 283 "mysql.ypp"
+#line 285 "mysql.ypp"
     { (yyval.sel_stmt) = (yyvsp[(2) - (3)].sel_stmt); ;}
     break;
 
   case 71:
-#line 286 "mysql.ypp"
+#line 288 "mysql.ypp"
     { (yyval.join) = NULL; ;}
     break;
 
   case 72:
-#line 296 "mysql.ypp"
+#line 298 "mysql.ypp"
     { (yyval.strval) = NULL; ;}
     break;
 
   case 73:
-#line 297 "mysql.ypp"
+#line 299 "mysql.ypp"
     { (yyval.strval) = (yyvsp[(2) - (2)].strval); ;}
     break;
 
   case 74:
-#line 300 "mysql.ypp"
+#line 302 "mysql.ypp"
     { (yyval.expr_tree) = NULL; ;}
     break;
 
   case 75:
-#line 301 "mysql.ypp"
+#line 303 "mysql.ypp"
     { (yyval.expr_tree) = (yyvsp[(2) - (2)].expr_tree); ;}
     break;
 
   case 76:
-#line 304 "mysql.ypp"
+#line 306 "mysql.ypp"
     { (yyval.order) = NULL; ;}
     break;
 
   case 77:
-#line 305 "mysql.ypp"
+#line 307 "mysql.ypp"
     { (yyval.order) = (yyvsp[(3) - (3)].order); ;}
     break;
 
   case 79:
-#line 310 "mysql.ypp"
+#line 312 "mysql.ypp"
     { (yyval.order) = (yyvsp[(1) - (3)].order); order_list_append((yyval.order), (yyvsp[(3) - (3)].order)); ;}
     break;
 
   case 80:
-#line 314 "mysql.ypp"
+#line 316 "mysql.ypp"
     { (yyval.order) = new struct ORDER_LIST; (yyval.order)->type = (yyvsp[(2) - (2)].intval); (yyval.order)->expr = (yyvsp[(1) - (2)].expr_tree); (yyval.order)->next = NULL; ;}
     break;
 
   case 81:
-#line 317 "mysql.ypp"
+#line 319 "mysql.ypp"
     { (yyval.intval) = 0; ;}
     break;
 
   case 82:
-#line 318 "mysql.ypp"
+#line 320 "mysql.ypp"
     { (yyval.intval) = 0; ;}
     break;
 
   case 83:
-#line 319 "mysql.ypp"
+#line 321 "mysql.ypp"
     { (yyval.intval) = 1; ;}
     break;
 
   case 84:
-#line 323 "mysql.ypp"
+#line 325 "mysql.ypp"
     { (yyval.table_op) = newTABLE_OP(AST_INSERT, (yyvsp[(3) - (7)].strval), NULL, (yyvsp[(5) - (7)].col_ref), (yyvsp[(7) - (7)].ins_src), NULL); ;}
     break;
 
   case 85:
-#line 326 "mysql.ypp"
+#line 328 "mysql.ypp"
     { (yyval.col_ref) = new struct COL_LISTING; (yyval.col_ref)->name = (yyvsp[(1) - (1)].strval); (yyval.col_ref)->next = NULL; ;}
     break;
 
   case 86:
-#line 327 "mysql.ypp"
+#line 329 "mysql.ypp"
     { (yyval.col_ref) = (yyvsp[(1) - (3)].col_ref); col_list_append((yyval.col_ref), (yyvsp[(3) - (3)].strval)); ;}
     break;
 
   case 87:
-#line 331 "mysql.ypp"
+#line 333 "mysql.ypp"
     { (yyval.ins_src) = new struct INS_SRC; (yyval.ins_src)->type = 0; (yyval.ins_src)->contents.list = (yyvsp[(3) - (4)].list); ;}
     break;
 
   case 88:
-#line 333 "mysql.ypp"
+#line 335 "mysql.ypp"
     { (yyval.ins_src) = new struct INS_SRC; (yyval.ins_src)->type = 1; (yyval.ins_src)->contents.sub_query = (yyvsp[(1) - (1)].sel_stmt); ;}
     break;
 
   case 89:
-#line 346 "mysql.ypp"
+#line 348 "mysql.ypp"
     { (yyval.table_op) = newTABLE_OP(AST_UPDATE, (yyvsp[(2) - (8)].strval), NULL, (yyvsp[(5) - (8)].col_ref), (yyvsp[(7) - (8)].ins_src), (yyvsp[(8) - (8)].expr_tree)); ;}
     break;
 
   case 90:
-#line 350 "mysql.ypp"
+#line 352 "mysql.ypp"
     { (yyval.table_op) = newTABLE_OP(AST_DELETE, (yyvsp[(3) - (4)].strval), NULL, NULL, NULL, (yyvsp[(4) - (4)].expr_tree)); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2094 "mysql.tab.cpp"
+#line 2104 "mysql.tab.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2304,7 +2314,7 @@ yyreturn:
 }
 
 
-#line 354 "mysql.ypp"
+#line 356 "mysql.ypp"
 
 
 

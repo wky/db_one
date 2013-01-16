@@ -184,8 +184,7 @@ int Table::update_where(std::vector<std::string>& col,
                     this->copy_data(data[i] + ins_col[j], ins_col[j]);
             }
         }
-        if (dt_bool & NEED_FREE_MASK)
-            delete_tmp(cond);
+        optional_free(cond, dt_bool);
     }
     err_buf = NULL;
     sprintf(buf, "%d rows modified.", modified_cnt);
@@ -249,8 +248,7 @@ int Table::delete_where(struct EXPR *where){
             data[i] = data[n_left];
         }else
             i++;
-        if (dt_bool & NEED_FREE_MASK)
-            delete_tmp(cond);
+        optional_free(cond, dt_bool);
     }
     int del_cnt = data.size() - n_left;
     data.resize(n_left);
@@ -313,14 +311,16 @@ Table::~Table(){
 void Table::drop(){
     std::map<int, void*>::iterator it = defaults.begin();
     for (; it != defaults.end(); it++)
-        if (col_list[(*it).first].first & NEED_FREE_MASK){
-            if (col_list[(*it).first].first & DT_TEXT)
-                delete[] (char*)((*it).second);
-            else 
-                delete_tmp((*it).second);
-        }
+        optional_free((*it).second, col_list[(*it).first].first);
     defaults.clear();
-    for (int i = 0; i < data.size(); ++i)
+    std::vector<int> txt_cols;
+    for (int i = 0; i < col_list.size(); ++i)
+        if (col_list[i].first & DT_TEXT)
+            txt_cols.push_back(i);
+    for (int i = 0; i < data.size(); ++i){
+        for (int j = 0; j < txt_cols.size(); j++)
+            delete[] data[i][txt_cols[j]].s;
         delete[] data[i];
+    }
     data.clear();
 }

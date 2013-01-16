@@ -304,6 +304,7 @@ void free_ast(void *node){
                     free_ast(table_op->src->contents.sub_query);
                 else
                     free_EXPR_LIST(table_op->src->contents.list);
+                delete table_op->src;
             }
             if (table_op->where)
                 free_ast(table_op->where);
@@ -321,6 +322,7 @@ void free_ast(void *node){
                 free_ORDER_LIST(select->order_list);
             if (select->where)
                 free_ast(select->where);
+            delete select;
             break;
         case EXPR_NAME:
         case EXPR_NAMEFIELD:

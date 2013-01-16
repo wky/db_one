@@ -1,6 +1,6 @@
 #DB_SRC = eval_ast.cpp database.cpp table.cpp db_one.cpp main.cpp query_result.cpp
 #OBJS = exe/main.o db_one.o database.o query_result.o
-CXXFLAGS = -O -Wall -Wextra  -Wno-sign-compare -Wno-unused-parameter
+CXXFLAGS = -O3  -Wall -Wextra  -Wno-sign-compare -Wno-unused-parameter
 OBJS = eval_ast.o display.o database.o table.o db_one.o main.o query_result.o types.o sqlfuncs.o
 all: db_one
 #	$(CC) $(CFLAGS) -o db $(OBJS)
@@ -17,4 +17,4 @@ parser: mysql.l mysql.ypp
 	c++ $(CXXFLAGS) -c -o mysql.tab.o mysql.tab.cpp
 	c++ $(CXXFLAGS) -c -o mysql.lex.o mysql.lex.cpp
 clean:
-	rm -f  *.o  mysql.tab.cpp mysql.lex.cpp mysql.tab.h mysql.lex.h
+	rm -f  *.o db_one mysql.tab.cpp mysql.lex.cpp mysql.tab.h mysql.lex.h

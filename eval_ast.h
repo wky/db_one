@@ -15,6 +15,7 @@ void *judge_comparison(int, void *, int, void *, int, int*);
 void *calculate_result(int, void *, int, void *, int, int*);
 void *eval_ast(struct EXPR *, int *);
 void *dt_convert(void *, int, int*);
-void delete_tmp(void *ptr);
+/*void delete_tmp(void *ptr);*/
+void optional_free(void *, int);
 
 #endif

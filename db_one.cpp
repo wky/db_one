@@ -16,6 +16,7 @@ DatabaseOne::DatabaseOne(){
 
 DatabaseOne::~DatabaseOne(){
     this->shutdown();
+    yylex_destroy();
 }
 
 bool DatabaseOne::init(){

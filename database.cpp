@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdio>
 
+
 extern bool treat_as_static;
 extern std::map<std::string, Table*> *tbl_ref_map;
 extern char *err_buf;
@@ -22,25 +23,46 @@ public:
     bool operator()(const std::vector<int>& a, const std::vector<int>& b){
         int i, j, l_dt, r_dt, res_dt;
         void *l_ptr, *r_ptr, *res;
+        bool cmp_res = false, cont;
         for (i = 0; i < cmp_expr.size(); i++){
+            cont = false;
             for (j = 0; j < tables.size(); j++)
                 tables[j].second->set_current_row(a[j]);
             l_ptr = eval_ast(cmp_expr[i], &l_dt);
-            if (l_ptr == NULL) return false;
+            if (l_ptr == NULL)
+                goto end0;
             for (j = 0; j < tables.size(); j++)
                 tables[j].second->set_current_row(b[j]);
             r_ptr = eval_ast(cmp_expr[i], &r_dt);
-            if (r_ptr == NULL) return false;
+            if (r_ptr == NULL)
+                goto end1;
             res = judge_comparison(order[i]?CMP_G:CMP_L, l_ptr, l_dt,
                 r_ptr, r_dt, &res_dt);
-            if (res == NULL) return false;
-            if (*(bool*)res) return true;
+            if (res == NULL)
+                goto end2;
+            if (*(bool*)res){
+                cmp_res = true;
+                goto end3;
+            }
+            optional_free(res, res_dt);
             res = judge_comparison(CMP_E, l_ptr, l_dt,
                 r_ptr, r_dt, &res_dt);
-            if (res == NULL) return false;
-            if (!(*(bool*)res)) return false;
+            if (res == NULL)
+                goto end2;
+            if (!(*(bool*)res))
+                goto end3;
+            cont = true;
+            end3:
+                optional_free(res, res_dt);
+            end2:
+                optional_free(r_ptr, r_dt);
+            end1:
+                optional_free(l_ptr, l_dt);
+            end0:
+                if (!cont)
+                    break;
         }
-        return false;
+        return cmp_res;
     }
 };
 
@@ -90,12 +112,7 @@ int Database::drop_table(const char *tbl_name, char *buf){
 
 static void free_col_data(std::vector<std::pair<int, void*> >& val_vec){
     for (int i = 0; i < val_vec.size(); i++)
-        if (val_vec[i].first & NEED_FREE_MASK){
-            if (val_vec[i].first & DT_TEXT)
-                delete[] (char*)(val_vec[i].second);
-            else
-                delete_tmp(val_vec[i].second);
-        }
+        optional_free(val_vec[i].second, val_vec[i].first);
 }
 
 int Database::create_table(const char *name, struct COL_DEF_LIST *def, 
@@ -354,7 +371,7 @@ void Database::iterate_select(std::vector<std::vector<int> >&products,
         cond = dt_convert(cond, dt, &dt_bool);
         if (*(bool*)cond)
             products.push_back(row_ref);
-        delete_tmp(cond);
+        optional_free(cond, dt_bool);
         return;
     }
     row_ref[level] = 0;
@@ -477,8 +494,7 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr,
                 }
                 col_def.push_back(std::pair<int, std::string>(
                     dt & ~NEED_FREE_MASK, std::string(sel_ptr->alias)));
-                if (dt & NEED_FREE_MASK)
-                    delete_tmp(dat);
+                optional_free(dat, dt);
                 col_expr.push_back(sel_ptr->expr);
                 sel_ptr = sel_ptr->next;
                 total_cols++;
@@ -502,8 +518,7 @@ int Database::run_select(struct SELECT_STMT *select, Table **tbl_ptr_addr,
                             break;
                         }
                         result_tbl->copy_data(raw_data[i] + j, j, dat);
-                        if (dt & NEED_FREE_MASK)
-                            delete_tmp(dat);
+                        optional_free(dat, dt);
                     }
                     if (ret_code != NOERR){
                         for (int j = 0; j < i ; j++)
